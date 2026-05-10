@@ -1,0 +1,17 @@
+{
+    "name": "portfolio",
+    "version": "1.0.0",
+    "description": "Personal portfolio website - works on any static hosting platform",
+    "scripts": {
+        "build": "node generate-content.js",
+        "dev": "npm run build && python server.py",
+        "serve": "python server.py"
+    },
+    "keywords": [
+        "portfolio",
+        "blog",
+        "static-site"
+    ],
+    "author": "",
+    "license": "MIT"
+}

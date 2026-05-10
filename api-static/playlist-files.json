@@ -1,0 +1,67 @@
+{
+  "files": [
+    {
+      "id": "frontend-polish-series",
+      "file": "playlists/frontend-polish-series.md",
+      "title": "Frontend Polish Series",
+      "description": "A curated reading path for improving interface quality, markdown rendering, and frontend implementation decisions.",
+      "cover": "assets/images/project1.jpg",
+      "order": 10,
+      "published": true,
+      "posts": [
+        {
+          "id": "markdown-ui-stress-test",
+          "title": "Markdown UI Stress Test for Long-Form Reading",
+          "date": "2026-03-21",
+          "readingTime": "14 min read",
+          "excerpt": "A deliberately long non-technical post that exercises headings, lists, tables, code, callouts, embeds, math, diagrams, images, and other markdown features to visually QA the site.",
+          "tags": [
+            "Markdown",
+            "UI QA",
+            "Content Design",
+            "Longform"
+          ],
+          "category": "non-tech",
+          "url": "blog-post.html?id=markdown-ui-stress-test"
+        },
+        {
+          "id": "getting-started-with-web-development",
+          "title": "Getting Started with Modern Web Development",
+          "date": "2025-01-15",
+          "readingTime": "5 min read",
+          "excerpt": "A comprehensive guide to starting your journey in web development with modern tools and best practices.",
+          "tags": [
+            "Web Development",
+            "Tutorial",
+            "Beginner"
+          ],
+          "category": "tech",
+          "url": "blog-post.html?id=getting-started-with-web-development"
+        },
+        {
+          "id": "understanding-async-javascript",
+          "title": "Understanding Asynchronous JavaScript",
+          "date": "2025-01-10",
+          "readingTime": "8 min read",
+          "excerpt": "Deep dive into async/await, promises, and how JavaScript handles asynchronous operations.",
+          "tags": [
+            "JavaScript",
+            "Advanced",
+            "Tutorial"
+          ],
+          "category": "tech",
+          "url": "blog-post.html?id=understanding-async-javascript"
+        }
+      ],
+      "postIds": [
+        "markdown-ui-stress-test",
+        "getting-started-with-web-development",
+        "understanding-async-javascript"
+      ],
+      "count": 3,
+      "content": "Use this playlist as a guided sequence for frontend-focused posts. It starts with visual QA and markdown rendering, then moves into broader web development and JavaScript implementation notes."
+    }
+  ],
+  "count": 1,
+  "generated": "2026-05-10T18:26:17.689Z"
+}

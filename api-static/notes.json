@@ -1,0 +1,292 @@
+{
+  "notes": [
+    {
+      "id": "career-growth-tips",
+      "title": "5 Essential Tips for Career Growth in Tech",
+      "kind": "blog",
+      "sourcePath": "blog/non-tech/career-growth-tips.md",
+      "url": "blog-post.html?id=career-growth-tips",
+      "category": "non-tech",
+      "tags": [
+        "Career",
+        "Growth",
+        "Advice",
+        "Professional Development"
+      ],
+      "date": "2025-01-10",
+      "aliases": [
+        "career-growth-tips",
+        "5 Essential Tips for Career Growth in Tech",
+        "non-tech/career-growth-tips"
+      ],
+      "content": "Throughout my career in tech, I've learned valuable lessons about professional growth. Here are five essential tips that have helped me advance my career.\r\n\r\n## 1. Build Your Personal Brand\r\n\r\nYour personal brand is how people perceive you professionally. It's not just about self-promotion; it's about establishing credibility and expertise.\r\n\r\n* Share your knowledge through blog posts and articles\r\n* Contribute to open-source projects\r\n* Speak at meetups or conferences\r\n* Be active on professional networks like LinkedIn\r\n\r\n## 2. Network Strategically\r\n\r\nNetworking isn't just about collecting business cards. It's about building genuine relationships.\r\n\r\n**Effective networking strategies:**\r\n* Attend industry events and conferences\r\n* Join online communities in your field\r\n* Participate in discussions and help others\r\n* Follow up with people you meet\r\n* Offer value before asking for favors\r\n\r\n![Illustration](assets/images/project1.jpg)\r\n\r\n## 3. Seek Mentorship and Give Mentorship\r\n\r\nHaving mentors can accelerate your career growth significantly. But don't forget to mentor others once you gain experience.\r\n\r\n**Finding a mentor:**\r\n* Look within your organization\r\n* Attend mentorship programs\r\n* Reach out to people you admire\r\n* Be clear about what you want to learn\r\n\r\n## 4. Continuously Learn New Skills\r\n\r\nThe tech industry evolves rapidly. Staying current is not optional; it's essential.\r\n\r\n* Take online courses\r\n* Read industry blogs and books\r\n* Experiment with new technologies\r\n* Get certifications when relevant\r\n* Attend workshops and training sessions\r\n\r\n## 5. Learn to Communicate Effectively\r\n\r\nTechnical skills alone aren't enough. Communication skills are crucial for career advancement.\r\n\r\n**Key communication skills:**\r\n* Writing clear documentation\r\n* Presenting ideas effectively\r\n* Active listening\r\n* Giving and receiving feedback\r\n* Explaining technical concepts to non-technical people\r\n\r\n## Conclusion\r\n\r\nCareer growth is a marathon, not a sprint. Focus on consistent improvement, build meaningful relationships, and never stop learning. Success comes to those who invest in themselves continuously.\r\n\r\nRemember: Your career is your responsibility. Take ownership of it."
+    },
+    {
+      "id": "markdown-ui-stress-test",
+      "title": "Markdown UI Stress Test for Long-Form Reading",
+      "kind": "blog",
+      "sourcePath": "blog/non-tech/markdown-ui-stress-test.md",
+      "url": "blog-post.html?id=markdown-ui-stress-test",
+      "category": "non-tech",
+      "tags": [
+        "Markdown",
+        "UI QA",
+        "Content Design",
+        "Longform"
+      ],
+      "date": "2026-03-21",
+      "aliases": [
+        "markdown-ui-stress-test",
+        "Markdown UI Stress Test for Long-Form Reading",
+        "non-tech/markdown-ui-stress-test"
+      ],
+      "content": "%% This comment should never appear in the rendered page. %%\n\nThis note exists to test how the website handles a long, varied piece of writing. It is intentionally mixed: some sections read like an essay, some read like documentation, and some are pure rendering checks.\n\nIf the UI is working properly, this page should make it obvious where spacing, type scale, code styling, table handling, and panel treatments still need refinement.\n\n---\n\n## Why this exists\n\nMost portfolio/blog systems look fine with only one kind of content. They start to break when a page includes:\n\n* short and long paragraphs\n* nested lists\n* code blocks\n* tables\n* images\n* embeds\n* diagrams\n* special markdown syntax\n\nThat is why this article is intentionally dense. It is less about the writing itself and more about how the writing **behaves** in the UI.\n\n## Basic typography checks\n\nThis sentence includes **bold text**, *italic text*, ***bold italic text***, `inline code`, and ~~struck text~~ in the same paragraph.\n\nEscaped markdown should not format: \\*this should not become italic\\* and \\#this should not become a heading.\n\nHighlight should work as ==marked text==, superscript should work like 2^10^, and subscript should work like H~2~O.\n\nHere is a forced line break at the end of this sentence.  \nThis line should appear directly under the previous one.\n\n### A smaller heading\n\nThe smaller heading should still be readable without feeling too loud. A page feels professional when it handles the quiet parts of the hierarchy well, not just the large titles.\n\n## Lists\n\n### Unordered\n\n* One simple bullet\n* Another bullet with **emphasis**\n* A bullet with a nested list\n  * Nested child one\n  * Nested child two with `inline code`\n  * Nested child three with a [normal link](https://example.com)\n\n### Ordered\n\n1. Start with the obvious thing.\n2. Reduce ambiguity before adding polish.\n3. Make the common path feel natural.\n4. Then handle the uncomfortable edge cases.\n\n### Task list\n\n- [x] Heading hierarchy\n- [x] Paragraph spacing\n- [x] Image rendering\n- [x] Link styling\n- [ ] Final visual QA on a real phone\n\n## Links\n\nNormal link: [OpenAI](https://openai.com)\n\nReference link: [Vercel docs][vercel]\n\nAuto URL: https://developer.mozilla.org/\n\nObsidian-style internal links:\n\n* [[about]]\n* [[home]]\n* [[Portfolio Publishing System]]\n* [[about#What I bring]]\n\n[vercel]: https://vercel.com/docs\n\n## Blockquote and callouts\n\n> Good UI often comes from reducing friction, not adding novelty.\n>\n> A clean reading layout should help content feel more trustworthy.\n\n> [!note]\n> This is a note callout. It should look different from plain prose.\n\n> [!tip]\n> This is a tip callout. The tone should feel lighter but still distinct.\n\n> [!warning]\n> This is a warning callout. It should not disappear into the background.\n\n> [!danger]- Collapsible risk note\n> This callout is foldable.\n>\n> If the UI is working, it should feel like a proper collapsible block rather than broken quoted text.\n\n## Definition list\n\nEditorial rhythm\n: The spacing and hierarchy that make a page feel intentional instead of accidental.\n\nSurface treatment\n: The way cards, panels, lines, and shadows help separate content without overwhelming it.\n\n## Tables\n\n| Item | Why it matters | Status |\n|------|----------------|--------|\n| Headings | They control scanning and hierarchy | Good |\n| Lists | They expose spacing problems quickly | Good |\n| Tables | They reveal overflow and small-screen issues | Check |\n\n| Left | Center | Right |\n|:-----|:------:|------:|\n| calm | balanced | aligned |\n| soft | even | sharp |\n\n## Images\n\nBelow is a normal markdown image using an existing site asset. It should resize correctly and stay inside the content width.\n\n![Sample visual](assets/images/project1.jpg)\n\nThis next line uses raw HTML for underline and a caption-like treatment: <u>visual regression checks are easier when content varies on purpose</u>.\n\n## Code\n\nInline code should feel different from fenced code. A fence should have clear padding, readable token colors, and no overflow bugs.\n\n```javascript\nfunction auditLayout(sectionName, issues) {\n    return {\n        sectionName,\n        issues,\n        passed: issues.length === 0,\n        checkedAt: new Date().toISOString()\n    };\n}\n\nconst report = auditLayout('blog-post', ['toc overlap', 'chip contrast']);\nconsole.log(report);\n```\n\n```css\n.reading-column {\n    max-width: 72ch;\n    margin-inline: auto;\n}\n\n.reading-column img {\n    max-width: 100%;\n    height: auto;\n}\n```\n\n```json\n{\n  \"component\": \"about-page\",\n  \"focus\": [\"hierarchy\", \"spacing\", \"contrast\"],\n  \"ready\": false\n}\n```\n\n## Horizontal rhythm\n\nThe page should be able to move from paragraph, to list, to code, to callout, to image without feeling like five different templates were stitched together.\n\n---\n\n## HTML details block\n\n<details>\n<summary>Open a native HTML details block</summary>\n\nThis content uses raw HTML and should still inherit the site styling in a clean way.\n\nIt is useful for FAQs, side notes, and optional detail that would otherwise crowd the main reading flow.\n\n</details>\n\n## Footnotes\n\nGood writing systems let supporting detail sit nearby without interrupting the main thought.[^footnote-one]\n\nAnother statement can point somewhere else.[^footnote-two]\n\n[^footnote-one]: This is the first footnote. It should render in a styled footnotes section.\n[^footnote-two]: This is the second footnote. The return/back references should also work.\n\n## Math\n\nInline math should render like $E = mc^2$ inside a sentence.\n\nBlock math should render with better separation:\n\n$$\n\\text{clarity} = \\frac{\\text{signal}}{\\text{noise}}\n$$\n\n## Mermaid\n\n```mermaid\nflowchart TD\n    A[Raw idea] --> B[Structure]\n    B --> C[Typography]\n    C --> D[Spacing]\n    D --> E[Refinement]\n    E --> F[Trust]\n```\n\n## Plugin-style fences\n\n```dataview\nTABLE file.name, tags\nFROM #markdown\n```\n\n```chart\ntype: bar\nlabels: [Readability, Contrast, Rhythm]\nseries:\n  - title: Score\n    data: [8, 7, 9]\n```\n\n```chart\ntype: line\nlabels: [Draft, Review, Polish, Publish]\nseries:\n  - title: Confidence\n    data: [3, 5, 7, 9]\n```\n\n```chart\ntype: pie\nlabels: [Writing, Visual QA, Testing]\nseries:\n  - title: Allocation\n    data: [45, 30, 25]\n```\n\n```chart\ntype: doughnut\nlabels: [Calm, Clarity, Consistency, Trust]\nseries:\n  - title: Design Values\n    data: [30, 28, 22, 20]\n```\n\n```chart\ntype: radar\nlabels: [Type, Space, Contrast, Motion, Hierarchy]\nseries:\n  - title: Review\n    data: [8, 7, 6, 5, 9]\n```\n\n```kanban\n- [ ] Review spacing\n- [ ] Check chip contrast\n- [x] Fix code block overflow\n- [ ] Re-run mobile QA\n```\n\n## Obsidian-style embeds\n\nThe next embedded section should pull real content from another note if the note index and embed renderer are working:\n\n![[about#What I bring]]\n\nAnd this one should embed a section from the homepage note:\n\n![[home#Working Style]]\n\nThis paragraph can be referenced later. ^layout-check\n\nBlock reference link:\n\n* [[Markdown UI Stress Test for Long-Form Reading#^layout-check]]\n\n## Mixed formatting in real prose\n\nThere is a difference between a *supported feature* and a *usable reading experience*.\n\nA page can technically render every markdown primitive and still feel wrong if:\n\n* headings are too loud\n* body text is too dense\n* cards are too decorative\n* code blocks are hard to scan\n* images break the rhythm\n\nThat is the real point of this post.\n\n## A long-form section with more natural writing\n\nWhen people test markdown rendering, they often use short snippets that do not reflect real reading behavior. That usually misses the subtle problems. A page might handle a list on its own, but fail when a list follows a heading and sits above a code block. A page might render an image correctly, but still make it feel awkward because the line length is too wide or the vertical spacing is inconsistent.\n\nThat is why long-form notes are useful. They expose where a design system is genuinely stable and where it only works in controlled examples. This kind of page is especially helpful for a markdown-first site because the content model is meant to stay flexible over time. If the page can survive this kind of mixed structure without feeling broken, then it is probably ready for normal writing.\n\n## Final checklist\n\nBefore you sign off on the reading UI, check:\n\n1. Does the title scale still feel right on laptop and mobile?\n2. Do tables overflow cleanly instead of breaking the page width?\n3. Are the callouts visually distinct but not aggressive?\n4. Do code blocks stay readable in both light and dark themes?\n5. Do note embeds feel like part of the page instead of foreign components?\n6. Are long sections still easy to scan?\n\n## Closing note\n\nIf this page renders cleanly, the markdown system is in good shape. If it feels uneven, the weak areas should now be easier to identify and fix.\n\n:smile: Sometimes the best QA artifact is a deliberately overstuffed page."
+    },
+    {
+      "id": "remote-work-productivity",
+      "title": "Mastering Remote Work: Productivity Tips That Actually Work",
+      "kind": "blog",
+      "sourcePath": "blog/non-tech/remote-work-productivity.md",
+      "url": "blog-post.html?id=remote-work-productivity",
+      "category": "non-tech",
+      "tags": [
+        "Remote Work",
+        "Productivity",
+        "Work From Home",
+        "Tips",
+        "Life"
+      ],
+      "date": "2024-12-20",
+      "aliases": [
+        "remote-work-productivity",
+        "Mastering Remote Work: Productivity Tips That Actually Work",
+        "non-tech/remote-work-productivity"
+      ],
+      "content": "Remote work has become the norm for many professionals. While it offers flexibility, it also presents unique challenges. Here's what I've learned about staying productive while working from home.\r\n\r\n## Create a Dedicated Workspace\r\n\r\nYour environment significantly impacts your productivity.\r\n\r\n**Setting up your workspace:**\r\n* Choose a quiet area with minimal distractions\r\n* Invest in a comfortable chair and desk\r\n* Ensure good lighting (natural light is best)\r\n* Keep your workspace organized and clutter-free\r\n* Add personal touches that inspire you\r\n\r\n## Establish a Routine\r\n\r\nWithout the structure of an office, it's easy to blur the lines between work and personal time.\r\n\r\n### Morning Routine\r\n* Wake up at the same time daily\r\n* Exercise or meditate\r\n* Eat a healthy breakfast\r\n* Get dressed (even if staying home)\r\n* Start work at a consistent time\r\n\r\n### Evening Routine\r\n* Set a clear end time for work\r\n* Review accomplishments\r\n* Plan tomorrow's priorities\r\n* \"Commute\" by taking a walk\r\n* Disconnect from work devices\r\n\r\n## Time Management Techniques\r\n\r\n### The Pomodoro Technique\r\nWork in focused 25-minute blocks with 5-minute breaks. After four pomodoros, take a longer 15-30 minute break.\r\n\r\n### Time Blocking\r\nSchedule your day in blocks:\r\n* Deep work (complex tasks)\r\n* Meetings\r\n* Email/communication\r\n* Breaks\r\n* Learning time\r\n\r\n### Eat the Frog\r\nDo your most challenging task first thing in the morning when your energy is highest.\r\n\r\n## Communication Best Practices\r\n\r\nRemote work requires intentional communication.\r\n\r\n**Over-communicate:**\r\n* Update your team on progress regularly\r\n* Use status indicators (available, busy, away)\r\n* Respond to messages promptly\r\n* Be clear and concise in writing\r\n* Use video calls for complex discussions\r\n\r\n**Set Boundaries:**\r\n* Communicate your working hours\r\n* Don't feel obligated to respond instantly\r\n* Use \"Do Not Disturb\" when focusing\r\n* Let people know when you're offline\r\n\r\n## Combat Isolation\r\n\r\nOne of the biggest challenges of remote work is feeling isolated.\r\n\r\n**Stay connected:**\r\n* Schedule virtual coffee chats with colleagues\r\n* Join online communities\r\n* Attend virtual events\r\n* Work from co-working spaces occasionally\r\n* Meet friends after work hours\r\n\r\n## Take Care of Your Health\r\n\r\n### Physical Health\r\n* Take regular breaks to stretch\r\n* Exercise daily\r\n* Maintain good posture\r\n* Stay hydrated\r\n* Eat regular, healthy meals\r\n\r\n### Mental Health\r\n* Practice mindfulness or meditation\r\n* Set boundaries between work and life\r\n* Take time off when needed\r\n* Connect with others regularly\r\n* Seek help if feeling overwhelmed\r\n\r\n## Minimize Distractions\r\n\r\n**Common distractions and solutions:**\r\n\r\n**Social Media:** Use website blockers during work hours\r\n\r\n**Household Chores:** Schedule them for breaks or after work\r\n\r\n**Family/Roommates:** Set expectations and use \"do not disturb\" signals\r\n\r\n**News/Email:** Check at specific times, not continuously\r\n\r\n## Use the Right Tools\r\n\r\nInvest in tools that enhance productivity:\r\n\r\n* **Communication:** Slack, Zoom, Microsoft Teams\r\n* **Project Management:** Asana, Trello, Jira\r\n* **Time Tracking:** Toggl, RescueTime\r\n* **Focus:** Forest, Freedom, Cold Turkey\r\n* **Note-taking:** Notion, Evernote, Obsidian\r\n\r\n## Review and Adjust\r\n\r\nWhat works for others might not work for you.\r\n\r\n* Experiment with different techniques\r\n* Track your productivity\r\n* Reflect on what's working\r\n* Adjust your approach\r\n* Be patient with yourself\r\n\r\n## Conclusion\r\n\r\nRemote work success comes from:\r\n* Creating structure\r\n* Maintaining boundaries\r\n* Staying connected\r\n* Taking care of yourself\r\n* Continuously improving your system\r\n\r\nRemember: productivity isn't about working more hours; it's about working smarter and maintaining a sustainable pace.\r\n\r\nFind what works for you and stick with it!"
+    },
+    {
+      "id": "work-life-balance",
+      "title": "Finding Balance: A Software Engineer's Guide to Work-Life Harmony",
+      "kind": "blog",
+      "sourcePath": "blog/non-tech/work-life-balance.md",
+      "url": "blog-post.html?id=work-life-balance",
+      "category": "non-tech",
+      "tags": [
+        "Work-Life Balance",
+        "Mental Health",
+        "Wellness",
+        "Life",
+        "Career"
+      ],
+      "date": "2024-11-05",
+      "aliases": [
+        "work-life-balance",
+        "Finding Balance: A Software Engineer's Guide to Work-Life Harmony",
+        "non-tech/work-life-balance"
+      ],
+      "content": "The tech industry is known for its fast pace and demanding schedules. But burning out isn't a badge of honor—it's a warning sign. Here's how I've learned to maintain balance.\r\n\r\n## Recognize the Signs of Imbalance\r\n\r\nBefore you can fix the problem, you need to recognize it.\r\n\r\n**Warning signs:**\r\n* Constant fatigue, even after rest\r\n* Difficulty concentrating\r\n* Irritability and mood swings\r\n* Neglecting personal relationships\r\n* Physical symptoms (headaches, stomach issues)\r\n* Loss of interest in hobbies\r\n* Feeling overwhelmed constantly\r\n\r\n## Set Clear Boundaries\r\n\r\nBoundaries aren't limitations; they're essential for sustainability.\r\n\r\n### Work Boundaries\r\n* Set specific work hours\r\n* Turn off notifications after hours\r\n* Don't check email on weekends\r\n* Learn to say \"no\" to extra commitments\r\n* Take your full lunch break\r\n\r\n### Personal Boundaries\r\n* Protect family time\r\n* Schedule personal activities\r\n* Make time for hobbies\r\n* Maintain friendships\r\n* Prioritize sleep\r\n\r\n## The Power of \"No\"\r\n\r\nLearning to say no is a superpower.\r\n\r\n**When to say no:**\r\n* Tasks outside your role\r\n* Non-urgent requests during busy periods\r\n* Meetings without clear agendas\r\n* Projects that don't align with goals\r\n* Commitments that sacrifice personal time\r\n\r\n**How to say no professionally:**\r\n> \"I'd love to help, but I'm at capacity right now. Can we revisit this next month?\"\r\n\r\n> \"This sounds interesting, but it's not aligned with my current priorities.\"\r\n\r\n> \"I can help with X, but not Y. Would that work?\"\r\n\r\n## Prioritize What Matters\r\n\r\nNot everything is equally important.\r\n\r\n### Eisenhower Matrix\r\nCategorize tasks by urgency and importance:\r\n\r\n**Urgent + Important:** Do immediately\r\n**Important + Not Urgent:** Schedule time\r\n**Urgent + Not Important:** Delegate\r\n**Neither:** Eliminate\r\n\r\n## Make Time for Yourself\r\n\r\nSelf-care isn't selfish; it's necessary.\r\n\r\n**Daily practices:**\r\n* Morning routine (meditation, exercise, journaling)\r\n* Regular breaks during work\r\n* Healthy meals\r\n* Evening wind-down routine\r\n* Adequate sleep (7-9 hours)\r\n\r\n**Weekly practices:**\r\n* Exercise 3-5 times\r\n* Social activities with friends\r\n* Hobbies and interests\r\n* Quality time with family\r\n* One tech-free day\r\n\r\n**Monthly/Quarterly:**\r\n* Weekend getaways\r\n* Digital detox\r\n* Review and adjust priorities\r\n* Try something new\r\n\r\n## Disconnect to Reconnect\r\n\r\nTechnology enables our work but can also consume our lives.\r\n\r\n**Digital boundaries:**\r\n* No phones during meals\r\n* Airplane mode after 9 PM\r\n* Separate work and personal devices\r\n* Delete work apps from personal phone\r\n* Email-free weekends\r\n\r\n## Invest in Relationships\r\n\r\nDon't sacrifice relationships for career success.\r\n\r\n**Make time for:**\r\n* Partner/spouse dates\r\n* Family gatherings\r\n* Friend meetups\r\n* Community involvement\r\n* Building new connections\r\n\r\n## Pursue Passions Outside Work\r\n\r\nYour job doesn't define you entirely.\r\n\r\n**Benefits of hobbies:**\r\n* Mental refresh\r\n* Skill development\r\n* Social connections\r\n* Sense of accomplishment\r\n* Better work performance\r\n\r\n## Take Real Vacations\r\n\r\nVacation isn't just time off; it's essential recovery.\r\n\r\n**Vacation best practices:**\r\n* Plan ahead and block calendar\r\n* Set out-of-office messages\r\n* Delegate responsibilities\r\n* Truly disconnect\r\n* Don't check work emails\r\n* Return gradually\r\n\r\n## When Balance Seems Impossible\r\n\r\nSometimes work demands are genuinely high.\r\n\r\n**Temporary imbalance strategies:**\r\n* Communicate with family/friends\r\n* Set an end date\r\n* Maintain minimum self-care\r\n* Say no to new commitments\r\n* Reassess if it becomes permanent\r\n\r\n## Talk to Your Manager\r\n\r\nYour manager should care about your well-being.\r\n\r\n**Discussion points:**\r\n* Current workload\r\n* Priorities and deadlines\r\n* Resources needed\r\n* Flexible arrangements\r\n* Growth opportunities\r\n\r\n## Remember: It's a Practice\r\n\r\nBalance isn't a destination; it's an ongoing practice.\r\n\r\n* Be flexible and adjust\r\n* Don't aim for perfection\r\n* Forgive yourself for slips\r\n* Celebrate small wins\r\n* Keep refining your approach\r\n\r\n## Conclusion\r\n\r\nWork-life balance looks different for everyone. The key is finding what works for you and having the courage to protect it.\r\n\r\nYour career is a marathon, not a sprint. Take care of yourself so you can perform your best—not just at work, but in life.\r\n\r\n**Remember:** You're a human being, not a human doing."
+    },
+    {
+      "id": "getting-started-with-web-development",
+      "title": "Getting Started with Modern Web Development",
+      "kind": "blog",
+      "sourcePath": "blog/tech/getting-started-with-web-development.md",
+      "url": "blog-post.html?id=getting-started-with-web-development",
+      "category": "tech",
+      "tags": [
+        "Web Development",
+        "Tutorial",
+        "Beginner"
+      ],
+      "date": "2025-01-15",
+      "aliases": [
+        "getting-started-with-web-development",
+        "Getting Started with Modern Web Development",
+        "tech/getting-started-with-web-development"
+      ],
+      "content": "Welcome to the exciting world of modern web development! In this comprehensive guide, we'll explore the essential tools, technologies, and best practices you need to start your journey as a web developer.\r\n\r\n## Why Web Development?\r\n\r\nWeb development is one of the most accessible and rewarding fields in technology. With just a browser and a text editor, you can start building applications that reach millions of users worldwide.\r\n\r\n### The Modern Web Stack\r\n\r\nThe web development landscape has evolved significantly. Here's what you need to know:\r\n\r\n* **HTML5**: The backbone of web content\r\n* **CSS3**: Modern styling with flexbox, grid, and animations\r\n* **JavaScript**: The programming language of the web\r\n* **Frameworks**: React, Vue, Angular for complex applications\r\n\r\n## Getting Started\r\n\r\n### 1. Learn the Fundamentals\r\n\r\nBefore diving into frameworks, master the basics:\r\n\r\n```javascript\r\n// Simple JavaScript example\r\nfunction greet(name) {\r\n    return `Hello, ${name}! Welcome to web development.`;\r\n}\r\n\r\nconsole.log(greet('Developer'));\r\n```\r\n\r\n### 2. Build Projects\r\n\r\nThe best way to learn is by building. Start with simple projects:\r\n\r\n* Personal portfolio website\r\n* Todo list application\r\n* Weather app using APIs\r\n* Blog platform\r\n\r\n### 3. Version Control with Git\r\n\r\nLearn Git early in your journey. It's essential for:\r\n\r\n* Tracking changes in your code\r\n* Collaborating with other developers\r\n* Showcasing your work on GitHub\r\n\r\n## Modern Development Tools\r\n\r\n### Code Editors\r\n\r\n* **VS Code**: Most popular, highly extensible\r\n* **WebStorm**: Powerful IDE for JavaScript\r\n* **Sublime Text**: Fast and lightweight\r\n\r\n### Browser DevTools\r\n\r\nMaster your browser's developer tools:\r\n\r\n* Inspect and modify HTML/CSS in real-time\r\n* Debug JavaScript\r\n* Monitor network requests\r\n* Analyze performance\r\n\r\n## Best Practices\r\n\r\n> \"Code is read more often than it is written.\" - Guido van Rossum\r\n\r\nFollow these principles:\r\n\r\n1. **Write clean, readable code**: Use meaningful variable names and add comments\r\n2. **Keep it simple**: Don't over-engineer solutions\r\n3. **Test your code**: Write tests to catch bugs early\r\n4. **Stay updated**: The web evolves quickly, keep learning\r\n\r\n## Resources for Learning\r\n\r\nHere are some excellent resources to continue your learning:\r\n\r\n* [MDN Web Docs](https://developer.mozilla.org/) - Comprehensive web documentation\r\n* [freeCodeCamp](https://www.freecodecamp.org/) - Free coding bootcamp\r\n* [JavaScript.info](https://javascript.info/) - Modern JavaScript tutorial\r\n* [CSS-Tricks](https://css-tricks.com/) - CSS tips and tricks\r\n\r\n## Conclusion\r\n\r\nWeb development is a journey, not a destination. Start with the basics, build projects, and never stop learning. The web community is incredibly supportive, so don't hesitate to ask questions and share your progress.\r\n\r\nHappy coding! 🚀"
+    },
+    {
+      "id": "understanding-async-javascript",
+      "title": "Understanding Asynchronous JavaScript",
+      "kind": "blog",
+      "sourcePath": "blog/tech/understanding-async-javascript.md",
+      "url": "blog-post.html?id=understanding-async-javascript",
+      "category": "tech",
+      "tags": [
+        "JavaScript",
+        "Advanced",
+        "Tutorial"
+      ],
+      "date": "2025-01-10",
+      "aliases": [
+        "understanding-async-javascript",
+        "Understanding Asynchronous JavaScript",
+        "tech/understanding-async-javascript"
+      ],
+      "content": "Asynchronous programming is one of the most important concepts in JavaScript. Let's dive deep into how JavaScript handles async operations and why it matters.\r\n\r\n## What is Asynchronous Programming?\r\n\r\nJavaScript is single-threaded, meaning it can only execute one piece of code at a time. However, many operations (like fetching data from a server) take time. Asynchronous programming allows JavaScript to handle these time-consuming operations without blocking the main thread.\r\n\r\n## The Evolution of Async JavaScript\r\n\r\n### 1. Callbacks (The Old Way)\r\n\r\n```javascript\r\n// Callback example\r\nfunction fetchData(callback) {\r\n    setTimeout(() => {\r\n        callback('Data received!');\r\n    }, 1000);\r\n}\r\n\r\nfetchData((data) => {\r\n    console.log(data);\r\n});\r\n```\r\n\r\n**Problem**: Callback hell - deeply nested callbacks become hard to read and maintain.\r\n\r\n### 2. Promises (Better)\r\n\r\nPromises provide a cleaner way to handle async operations:\r\n\r\n```javascript\r\nfunction fetchData() {\r\n    return new Promise((resolve, reject) => {\r\n        setTimeout(() => {\r\n            resolve('Data received!');\r\n        }, 1000);\r\n    });\r\n}\r\n\r\nfetchData()\r\n    .then(data => console.log(data))\r\n    .catch(error => console.error(error));\r\n```\r\n\r\n### 3. Async/Await (Modern Approach)\r\n\r\nThe most readable and maintainable approach:\r\n\r\n```javascript\r\nasync function getData() {\r\n    try {\r\n        const data = await fetchData();\r\n        console.log(data);\r\n    } catch (error) {\r\n        console.error(error);\r\n    }\r\n}\r\n\r\ngetData();\r\n```\r\n\r\n## Real-World Example: Fetching API Data\r\n\r\nHere's a practical example using the Fetch API:\r\n\r\n```javascript\r\nasync function fetchUserData(userId) {\r\n    try {\r\n        const response = await fetch(`https://api.example.com/users/${userId}`);\r\n        \r\n        if (!response.ok) {\r\n            throw new Error('Network response was not ok');\r\n        }\r\n        \r\n        const user = await response.json();\r\n        return user;\r\n    } catch (error) {\r\n        console.error('Error fetching user:', error);\r\n        throw error;\r\n    }\r\n}\r\n\r\n// Usage\r\nasync function displayUser() {\r\n    const user = await fetchUserData(123);\r\n    console.log(user);\r\n}\r\n```\r\n\r\n## Parallel vs Sequential Execution\r\n\r\n### Sequential (One after another)\r\n\r\n```javascript\r\nasync function sequential() {\r\n    const user = await fetchUser();\r\n    const posts = await fetchPosts();\r\n    const comments = await fetchComments();\r\n    \r\n    return { user, posts, comments };\r\n}\r\n```\r\n\r\n### Parallel (All at once)\r\n\r\n```javascript\r\nasync function parallel() {\r\n    const [user, posts, comments] = await Promise.all([\r\n        fetchUser(),\r\n        fetchPosts(),\r\n        fetchComments()\r\n    ]);\r\n    \r\n    return { user, posts, comments };\r\n}\r\n```\r\n\r\n> **Pro Tip**: Use `Promise.all()` when operations are independent to improve performance!\r\n\r\n## Common Pitfalls\r\n\r\n### 1. Forgetting to await\r\n\r\n```javascript\r\n// Wrong - returns a Promise, not the data\r\nasync function getData() {\r\n    const data = fetchData(); // Missing await!\r\n    console.log(data); // Promise object, not the actual data\r\n}\r\n\r\n// Correct\r\nasync function getData() {\r\n    const data = await fetchData();\r\n    console.log(data); // Actual data\r\n}\r\n```\r\n\r\n### 2. Not handling errors\r\n\r\nAlways use try-catch blocks or .catch() to handle errors:\r\n\r\n```javascript\r\nasync function safeOperation() {\r\n    try {\r\n        const result = await riskyOperation();\r\n        return result;\r\n    } catch (error) {\r\n        console.error('Operation failed:', error);\r\n        return null;\r\n    }\r\n}\r\n```\r\n\r\n### 3. Mixing async patterns\r\n\r\nStick to one pattern (preferably async/await) for consistency:\r\n\r\n```javascript\r\n// Confusing - mixing patterns\r\nasync function mixed() {\r\n    const data = await fetchData()\r\n        .then(result => result.json())\r\n        .catch(error => console.error(error));\r\n}\r\n\r\n// Better - consistent async/await\r\nasync function consistent() {\r\n    try {\r\n        const response = await fetchData();\r\n        const data = await response.json();\r\n        return data;\r\n    } catch (error) {\r\n        console.error(error);\r\n    }\r\n}\r\n```\r\n\r\n## Advanced Patterns\r\n\r\n### Retry Logic\r\n\r\n```javascript\r\nasync function fetchWithRetry(url, maxRetries = 3) {\r\n    for (let i = 0; i < maxRetries; i++) {\r\n        try {\r\n            const response = await fetch(url);\r\n            return await response.json();\r\n        } catch (error) {\r\n            if (i === maxRetries - 1) throw error;\r\n            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));\r\n        }\r\n    }\r\n}\r\n```\r\n\r\n### Timeout Handling\r\n\r\n```javascript\r\nfunction timeout(promise, ms) {\r\n    return Promise.race([\r\n        promise,\r\n        new Promise((_, reject) => \r\n            setTimeout(() => reject(new Error('Timeout')), ms)\r\n        )\r\n    ]);\r\n}\r\n\r\n// Usage\r\ntry {\r\n    const data = await timeout(fetchData(), 5000);\r\n} catch (error) {\r\n    console.error('Request timed out or failed:', error);\r\n}\r\n```\r\n\r\n## Conclusion\r\n\r\nMastering asynchronous JavaScript is crucial for building modern web applications. Start with understanding Promises, then move to async/await for cleaner, more maintainable code.\r\n\r\nRemember:\r\n* Always handle errors\r\n* Use async/await for readability\r\n* Leverage Promise.all() for parallel operations\r\n* Be mindful of performance implications\r\n\r\nKeep practicing, and async JavaScript will become second nature! 💪"
+    },
+    {
+      "id": "building-scalable-apis",
+      "title": "Building Scalable REST APIs",
+      "kind": "blog",
+      "sourcePath": "blog/tim pass/building-scalable-apis.md",
+      "url": "blog-post.html?id=building-scalable-apis",
+      "category": "tim pass",
+      "tags": [
+        "Backend",
+        "API",
+        "Architecture"
+      ],
+      "date": "2025-01-05",
+      "aliases": [
+        "building-scalable-apis",
+        "Building Scalable REST APIs",
+        "tim pass/building-scalable-apis"
+      ],
+      "content": "Building APIs that can scale from hundreds to millions of users requires careful planning and adherence to best practices. In this guide, we'll explore the principles and patterns for creating robust, scalable REST APIs.\r\n\r\n## What Makes an API Scalable?\r\n\r\nA scalable API should:\r\n\r\n* Handle increasing load without degrading performance\r\n* Be maintainable and easy to extend\r\n* Follow consistent patterns and conventions\r\n* Include proper error handling and validation\r\n* Be well-documented\r\n\r\n## REST API Design Principles\r\n\r\n### 1. Resource-Based URLs\r\n\r\nUse nouns, not verbs, in your endpoints:\r\n\r\n```\r\n✅ Good:\r\nGET    /api/users\r\nGET    /api/users/123\r\nPOST   /api/users\r\nPUT    /api/users/123\r\nDELETE /api/users/123\r\n\r\n❌ Bad:\r\nGET    /api/getUsers\r\nPOST   /api/createUser\r\nPOST   /api/deleteUser/123\r\n```\r\n\r\n### 2. HTTP Methods\r\n\r\nUse appropriate HTTP methods:\r\n\r\n* **GET**: Retrieve resources\r\n* **POST**: Create new resources\r\n* **PUT**: Update entire resources\r\n* **PATCH**: Partial updates\r\n* **DELETE**: Remove resources\r\n\r\n### 3. Status Codes\r\n\r\nReturn meaningful HTTP status codes:\r\n\r\n* **200 OK**: Successful GET, PUT, PATCH\r\n* **201 Created**: Successful POST\r\n* **204 No Content**: Successful DELETE\r\n* **400 Bad Request**: Invalid input\r\n* **401 Unauthorized**: Authentication required\r\n* **403 Forbidden**: Authenticated but not authorized\r\n* **404 Not Found**: Resource doesn't exist\r\n* **500 Internal Server Error**: Server error\r\n\r\n## Implementation Example\r\n\r\nHere's a Node.js/Express example:\r\n\r\n```javascript\r\nconst express = require('express');\r\nconst app = express();\r\n\r\napp.use(express.json());\r\n\r\n// In-memory database (use a real database in production)\r\nlet users = [];\r\nlet nextId = 1;\r\n\r\n// GET all users\r\napp.get('/api/users', (req, res) => {\r\n    const { page = 1, limit = 10 } = req.query;\r\n    const startIndex = (page - 1) * limit;\r\n    const endIndex = page * limit;\r\n    \r\n    const paginatedUsers = users.slice(startIndex, endIndex);\r\n    \r\n    res.json({\r\n        data: paginatedUsers,\r\n        pagination: {\r\n            page: parseInt(page),\r\n            limit: parseInt(limit),\r\n            total: users.length\r\n        }\r\n    });\r\n});\r\n\r\n// GET single user\r\napp.get('/api/users/:id', (req, res) => {\r\n    const user = users.find(u => u.id === parseInt(req.params.id));\r\n    \r\n    if (!user) {\r\n        return res.status(404).json({ error: 'User not found' });\r\n    }\r\n    \r\n    res.json({ data: user });\r\n});\r\n\r\n// POST create user\r\napp.post('/api/users', (req, res) => {\r\n    const { name, email } = req.body;\r\n    \r\n    // Validation\r\n    if (!name || !email) {\r\n        return res.status(400).json({ \r\n            error: 'Name and email are required' \r\n        });\r\n    }\r\n    \r\n    const newUser = {\r\n        id: nextId++,\r\n        name,\r\n        email,\r\n        createdAt: new Date().toISOString()\r\n    };\r\n    \r\n    users.push(newUser);\r\n    \r\n    res.status(201).json({ data: newUser });\r\n});\r\n\r\n// PUT update user\r\napp.put('/api/users/:id', (req, res) => {\r\n    const userIndex = users.findIndex(u => u.id === parseInt(req.params.id));\r\n    \r\n    if (userIndex === -1) {\r\n        return res.status(404).json({ error: 'User not found' });\r\n    }\r\n    \r\n    const { name, email } = req.body;\r\n    \r\n    if (!name || !email) {\r\n        return res.status(400).json({ \r\n            error: 'Name and email are required' \r\n        });\r\n    }\r\n    \r\n    users[userIndex] = {\r\n        ...users[userIndex],\r\n        name,\r\n        email,\r\n        updatedAt: new Date().toISOString()\r\n    };\r\n    \r\n    res.json({ data: users[userIndex] });\r\n});\r\n\r\n// DELETE user\r\napp.delete('/api/users/:id', (req, res) => {\r\n    const userIndex = users.findIndex(u => u.id === parseInt(req.params.id));\r\n    \r\n    if (userIndex === -1) {\r\n        return res.status(404).json({ error: 'User not found' });\r\n    }\r\n    \r\n    users.splice(userIndex, 1);\r\n    \r\n    res.status(204).send();\r\n});\r\n\r\nconst PORT = process.env.PORT || 3000;\r\napp.listen(PORT, () => {\r\n    console.log(`Server running on port ${PORT}`);\r\n});\r\n```\r\n\r\n## Best Practices for Scalability\r\n\r\n### 1. Pagination\r\n\r\nAlways paginate large datasets:\r\n\r\n```javascript\r\napp.get('/api/posts', async (req, res) => {\r\n    const page = parseInt(req.query.page) || 1;\r\n    const limit = parseInt(req.query.limit) || 20;\r\n    const skip = (page - 1) * limit;\r\n    \r\n    const posts = await Post.find()\r\n        .skip(skip)\r\n        .limit(limit);\r\n    \r\n    const total = await Post.countDocuments();\r\n    \r\n    res.json({\r\n        data: posts,\r\n        pagination: {\r\n            page,\r\n            limit,\r\n            total,\r\n            pages: Math.ceil(total / limit)\r\n        }\r\n    });\r\n});\r\n```\r\n\r\n### 2. Caching\r\n\r\nImplement caching to reduce database load:\r\n\r\n```javascript\r\nconst redis = require('redis');\r\nconst client = redis.createClient();\r\n\r\napp.get('/api/users/:id', async (req, res) => {\r\n    const { id } = req.params;\r\n    const cacheKey = `user:${id}`;\r\n    \r\n    // Try cache first\r\n    const cached = await client.get(cacheKey);\r\n    if (cached) {\r\n        return res.json({ data: JSON.parse(cached), cached: true });\r\n    }\r\n    \r\n    // Fetch from database\r\n    const user = await User.findById(id);\r\n    \r\n    if (!user) {\r\n        return res.status(404).json({ error: 'User not found' });\r\n    }\r\n    \r\n    // Cache for 1 hour\r\n    await client.setex(cacheKey, 3600, JSON.stringify(user));\r\n    \r\n    res.json({ data: user, cached: false });\r\n});\r\n```\r\n\r\n### 3. Rate Limiting\r\n\r\nProtect your API from abuse:\r\n\r\n```javascript\r\nconst rateLimit = require('express-rate-limit');\r\n\r\nconst limiter = rateLimit({\r\n    windowMs: 15 * 60 * 1000, // 15 minutes\r\n    max: 100, // limit each IP to 100 requests per windowMs\r\n    message: 'Too many requests, please try again later.'\r\n});\r\n\r\napp.use('/api/', limiter);\r\n```\r\n\r\n### 4. Input Validation\r\n\r\nAlways validate and sanitize input:\r\n\r\n```javascript\r\nconst { body, validationResult } = require('express-validator');\r\n\r\napp.post('/api/users',\r\n    body('email').isEmail().normalizeEmail(),\r\n    body('name').trim().isLength({ min: 2, max: 50 }),\r\n    body('age').optional().isInt({ min: 0, max: 150 }),\r\n    async (req, res) => {\r\n        const errors = validationResult(req);\r\n        \r\n        if (!errors.isEmpty()) {\r\n            return res.status(400).json({ errors: errors.array() });\r\n        }\r\n        \r\n        // Process valid data\r\n        const user = await User.create(req.body);\r\n        res.status(201).json({ data: user });\r\n    }\r\n);\r\n```\r\n\r\n### 5. Error Handling Middleware\r\n\r\nCentralize error handling:\r\n\r\n```javascript\r\n// Error handling middleware\r\napp.use((err, req, res, next) => {\r\n    console.error(err.stack);\r\n    \r\n    const status = err.status || 500;\r\n    const message = err.message || 'Internal Server Error';\r\n    \r\n    res.status(status).json({\r\n        error: {\r\n            message,\r\n            status,\r\n            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })\r\n        }\r\n    });\r\n});\r\n```\r\n\r\n## API Documentation\r\n\r\nDocument your API using tools like:\r\n\r\n* **Swagger/OpenAPI**: Industry standard\r\n* **Postman**: Great for testing and documentation\r\n* **API Blueprint**: Markdown-based documentation\r\n\r\nExample OpenAPI specification:\r\n\r\n```yaml\r\nopenapi: 3.0.0\r\ninfo:\r\n  title: User API\r\n  version: 1.0.0\r\npaths:\r\n  /api/users:\r\n    get:\r\n      summary: Get all users\r\n      parameters:\r\n        - name: page\r\n          in: query\r\n          schema:\r\n            type: integer\r\n        - name: limit\r\n          in: query\r\n          schema:\r\n            type: integer\r\n      responses:\r\n        '200':\r\n          description: Successful response\r\n```\r\n\r\n## Security Considerations\r\n\r\n1. **Authentication**: Use JWT or OAuth 2.0\r\n2. **HTTPS**: Always use HTTPS in production\r\n3. **CORS**: Configure CORS properly\r\n4. **SQL Injection**: Use parameterized queries\r\n5. **XSS**: Sanitize user input\r\n\r\n## Monitoring and Logging\r\n\r\nImplement proper logging and monitoring:\r\n\r\n```javascript\r\nconst winston = require('winston');\r\n\r\nconst logger = winston.createLogger({\r\n    level: 'info',\r\n    format: winston.format.json(),\r\n    transports: [\r\n        new winston.transports.File({ filename: 'error.log', level: 'error' }),\r\n        new winston.transports.File({ filename: 'combined.log' })\r\n    ]\r\n});\r\n\r\napp.use((req, res, next) => {\r\n    logger.info({\r\n        method: req.method,\r\n        url: req.url,\r\n        ip: req.ip,\r\n        timestamp: new Date().toISOString()\r\n    });\r\n    next();\r\n});\r\n```\r\n\r\n## Conclusion\r\n\r\nBuilding scalable REST APIs requires:\r\n\r\n* Following REST principles and conventions\r\n* Implementing proper error handling and validation\r\n* Using caching and pagination\r\n* Securing your endpoints\r\n* Monitoring and logging\r\n* Comprehensive documentation\r\n\r\nStart with these fundamentals, and your APIs will be ready to scale! 🚀"
+    },
+    {
+      "id": "awesome-web-app",
+      "title": "Portfolio Publishing System",
+      "kind": "project",
+      "sourcePath": "projects/awesome-web-app.md",
+      "url": "project-detail.html?id=awesome-web-app",
+      "category": null,
+      "tags": [
+        "JavaScript",
+        "Node.js",
+        "HTML",
+        "CSS",
+        "Markdown"
+      ],
+      "date": "2026-03-01",
+      "aliases": [
+        "awesome-web-app",
+        "Portfolio Publishing System"
+      ],
+      "content": "## Overview\n\nThis project takes a plain static portfolio and turns it into a more professional publishing system. The goal is not to add more tooling. The goal is to make the existing stack easier to maintain, easier to deploy, and more intentional in how it looks and reads.\n\n## What changed\n\n* Reworked the visual system so the site feels more editorial and less like a starter template\n* Moved the important copy into markdown files that are easy to update later\n* Wired site configuration into navigation, titles, footer text, and feature flags\n* Kept the build output static so deployment stays simple on Vercel\n\n## Implementation notes\n\n### Content pipeline\n\nThe build step reads markdown from the content folders and generates JSON into `api-static/`. That keeps the runtime simple while preserving a clean writing workflow.\n\n### Frontend structure\n\nThe interface uses plain HTML, CSS, and JavaScript. That keeps the site easy to inspect, portable across hosts, and fast to adapt when priorities change.\n\n### Config-first customization\n\nInstead of scattering branding across multiple files, the site now relies more heavily on `config/site.md` for navigation labels, feature flags, and footer content.\n\n## Why it matters\n\nPersonal sites usually fail for one of two reasons: the content is hard to update, or the design never moves beyond the starter state. This project addresses both by tightening the editing workflow and raising the design baseline.\n\n## Next steps\n\n- [ ] Replace the starter copy with final personal information\n- [ ] Add real outbound links for projects and profiles\n- [ ] Add custom images or screenshots for each case study"
+    },
+    {
+      "id": "machine-learning-platform",
+      "title": "Operations Review Dashboard",
+      "kind": "project",
+      "sourcePath": "projects/machine-learning-platform.md",
+      "url": "project-detail.html?id=machine-learning-platform",
+      "category": null,
+      "tags": [
+        "TypeScript",
+        "React",
+        "Python",
+        "PostgreSQL",
+        "Charting"
+      ],
+      "date": "2025-11-18",
+      "aliases": [
+        "machine-learning-platform",
+        "Operations Review Dashboard"
+      ],
+      "content": "## Overview\n\nThis concept explores how an operations dashboard can support weekly reviews without becoming another noisy reporting tool. The focus is on hierarchy, scanability, and fast movement between summary metrics and the underlying context.\n\n## Product goals\n\n* Show what changed this week without forcing users to hunt through tabs\n* Keep metrics readable for both technical and non-technical stakeholders\n* Make it easy to go from signal to action during a review\n\n## Interface direction\n\n### Information hierarchy\n\nThe dashboard is structured around a few clear states:\n\n* executive summary\n* release health\n* incident and risk review\n* delivery momentum\n\nThat keeps the page useful in both async reading and live discussion.\n\n### Design constraints\n\nThe layout prioritizes contrast and grouping over density. Cards need to feel related without collapsing into a generic analytics UI.\n\n## Technical direction\n\nThe stack assumes a frontend in TypeScript, a lightweight API layer in Python, and a relational store for snapshots and historical trend data. The interesting part is not the stack itself. The interesting part is how the data is shaped into a review-friendly narrative.\n\n## Lessons\n\nDashboards become more useful when they are opinionated. A blank grid of charts is flexible, but it rarely helps people make better decisions.\n\n## Next steps\n\n- [ ] Add annotations for releases, incidents, and major decisions\n- [ ] Support custom saved views for leadership and delivery teams\n- [ ] Introduce printable or shareable review snapshots"
+    },
+    {
+      "id": "mobile-fitness-app",
+      "title": "Automation Pipeline Console",
+      "kind": "project",
+      "sourcePath": "projects/mobile-fitness-app.md",
+      "url": "project-detail.html?id=mobile-fitness-app",
+      "category": null,
+      "tags": [
+        "Python",
+        "FastAPI",
+        "JavaScript",
+        "Docker",
+        "PostgreSQL"
+      ],
+      "date": "2025-08-09",
+      "aliases": [
+        "mobile-fitness-app",
+        "Automation Pipeline Console"
+      ],
+      "content": "## Overview\n\nThis project frames automation as a product surface instead of a background-only concern. Teams still need a clear place to inspect runs, understand failures, and intervene safely when a pipeline stalls.\n\n## Core workflow\n\nThe console is designed around a few repeated actions:\n\n* inspect the current run state\n* understand which step failed\n* retry or approve the next action\n* review the audit trail after the fact\n\n## Interface considerations\n\n### Status clarity\n\nAutomation tools fail when status becomes ambiguous. The UI needs to make state, ownership, and next action obvious at a glance.\n\n### Progressive detail\n\nOperators usually need a summary first and logs second. The interface should lead with the essentials and only expand into deeper technical detail when requested.\n\n## Technical notes\n\nThe implementation assumes:\n\n* a FastAPI backend exposing run state and control actions\n* a Postgres store for run metadata and audit history\n* containerized workers for executing long-running steps\n* a lightweight frontend optimized for clarity over novelty\n\n## Why this project is useful\n\nA lot of internal automation exists, but not all of it is easy to operate. This concept focuses on the operating experience after automation has already been built.\n\n## Next steps\n\n- [ ] Add diff views for step outputs between runs\n- [ ] Support role-based approvals for sensitive operations\n- [ ] Add alerting views for jobs that repeatedly regress"
+    },
+    {
+      "id": "full-time-product-engineer-example",
+      "title": "Northstar Systems",
+      "kind": "experience",
+      "sourcePath": "experience/Full Time/product-engineer-example.md",
+      "url": "experience-detail.html?id=full-time-product-engineer-example",
+      "category": "Full Time",
+      "tags": [
+        "React",
+        "TypeScript",
+        "Python",
+        "Internal Tools",
+        "Product Strategy"
+      ],
+      "date": "2024-07",
+      "aliases": [
+        "full-time-product-engineer-example",
+        "Northstar Systems",
+        "Full Time/product-engineer-example",
+        "Product Engineer"
+      ],
+      "content": "## Overview\n\nThis role sat between product engineering and workflow design. I worked on customer-facing interfaces, internal operations tools, and content systems that reduced the effort required to ship updates safely.\n\n## Responsibilities\n\n* Built and refined frontend interfaces for product and admin workflows\n* Improved release and publishing processes so teams could move faster with fewer manual steps\n* Worked with design, product, and operations partners on execution details\n\n## Impact\n\n* Reduced repeat manual work in publishing and internal review flows\n* Improved clarity in several UI states that previously caused user confusion\n* Helped turn scattered implementation details into more reusable patterns\n\n## Notable Work\n\n### Publishing workflow cleanup\n\nI helped simplify how content changes moved from editing to release. The main improvement was reducing the number of files and manual checks required for common updates, which made iteration faster and less error-prone.\n\n### Internal dashboard improvements\n\nI refined internal views used by the team to review status, trace issues, and understand what changed between releases. The focus was on hierarchy, scanability, and reducing noise.\n\n## Tools and Systems\n\n* React and TypeScript\n* Python-based automation and data processing\n* Static publishing workflows\n* Internal dashboards and operational tooling\n\n## Lessons\n\nThis role reinforced that quality is not only about frontend polish or backend correctness by themselves. The real leverage often comes from improving the workflow around the work."
+    },
+    {
+      "id": "internship-frontend-intern-example",
+      "title": "Studio Orbit",
+      "kind": "experience",
+      "sourcePath": "experience/Internship/frontend-intern-example.md",
+      "url": "experience-detail.html?id=internship-frontend-intern-example",
+      "category": "Internship",
+      "tags": [
+        "JavaScript",
+        "CSS",
+        "UI QA",
+        "Documentation"
+      ],
+      "date": "2023-05",
+      "aliases": [
+        "internship-frontend-intern-example",
+        "Studio Orbit",
+        "Internship/frontend-intern-example",
+        "Software Engineering Intern"
+      ],
+      "content": "## Overview\n\nThis internship focused on practical product work rather than isolated exercises. I contributed to frontend updates, interface QA, and documentation improvements while learning how a product team balances speed with quality.\n\n## What I Worked On\n\n* Helped implement and test frontend changes across several UI surfaces\n* Assisted with interface cleanup and consistency fixes\n* Improved small but repeated pain points in internal documentation\n\n## Impact\n\n* Helped close a backlog of visual and interaction inconsistencies\n* Improved confidence in feature releases through more careful UI review\n* Learned how to turn vague feedback into concrete implementation changes\n\n## Key Takeaways\n\n### Technical learning\n\nI became more comfortable reading an existing frontend codebase, tracing styles and states, and making small changes without breaking surrounding behavior.\n\n### Working style\n\nThe internship taught me that clear communication matters as much as code quality. Quick updates, explicit assumptions, and visible progress keep teams aligned.\n\n## Tools and Systems\n\n* JavaScript and CSS\n* UI regression checking\n* Product documentation\n* Internal collaboration workflows\n\n## Reflection\n\nThis internship was valuable because it made product work feel real. I was not only writing code; I was learning how teams make decisions, ship under constraints, and improve software incrementally."
+    },
+    {
+      "id": "home",
+      "title": "Karam",
+      "kind": "page",
+      "sourcePath": "home/home.md",
+      "url": "index.html",
+      "category": null,
+      "tags": [],
+      "date": "",
+      "aliases": [
+        "home",
+        "Karam",
+        "index",
+        "homepage"
+      ],
+      "content": "## Snapshot\n\n* Product-minded engineer focused on frontend quality, internal tools, and reliable delivery.\n* Comfortable moving between interface design, application architecture, and content systems.\n* Prefer simple primitives, strong defaults, and documentation that keeps future edits easy.\n\n## Selected Focus\n\n* Building polished portfolio and product interfaces without adding heavy framework complexity.\n* Tightening developer workflows so publishing and iteration stay lightweight.\n* Designing UI systems that feel intentional instead of template-generated.\n\n## Working Style\n\n* Start with structure, then make the presentation memorable.\n* Prefer maintainable systems over clever one-off implementations.\n* Treat content, navigation, and deployment as part of the product experience.\n\n## This Site\n\nThis portfolio is intentionally markdown-first. The content lives in a few predictable folders, the build step generates static JSON, and deployment stays simple enough for Vercel, Netlify, or any static host.\n\nIf you want to update the homepage later, edit this file and run `npm run build`."
+    },
+    {
+      "id": "about",
+      "title": "Karam",
+      "kind": "page",
+      "sourcePath": "about/about.md",
+      "url": "about.html",
+      "category": null,
+      "tags": [],
+      "date": "",
+      "aliases": [
+        "about",
+        "Karam"
+      ],
+      "content": "## Profile\n\nI build software where product clarity and implementation quality matter equally. The work I enjoy most sits between interface design, application architecture, and developer experience. I like systems that feel calm on the surface and stay understandable underneath.\n\n## What I bring\n\n### Interface quality\n\n* Turning rough requirements into polished, production-grade interfaces\n* Building design systems that stay consistent without feeling anonymous\n* Making dense workflows feel clear through hierarchy, spacing, and stronger defaults\n\n### Systems thinking\n\n* Breaking features into maintainable modules and predictable data flows\n* Using simple technical choices when they age better than complex stacks\n* Keeping code understandable for the next person who touches it\n\n### Operational clarity\n\n* Designing workflows that are easy to update instead of fragile to maintain\n* Reducing publishing and release friction so content and product stay current\n* Treating deployment, documentation, and authoring as part of the user experience\n\n## How I work\n\n* I optimize for clarity before cleverness.\n* I like systems that are easy to hand off, extend, and debug.\n* I care about the details that shape trust: copy, spacing, naming, performance, and edge cases.\n\n## What I value\n\nI value products that stay coherent after shipping. That usually means better structure, fewer moving parts, and a healthy respect for maintainability. It also means caring about presentation. Users notice when an interface feels generic, rushed, or hard to trust.\n\n## Current interests\n\n* Distinctive frontend design that avoids bland template aesthetics\n* Lightweight publishing systems for personal sites and internal tools\n* Product interfaces that make complex workflows feel calm\n\n## Collaboration\n\nI am most interested in projects that value thoughtful execution. That can mean shipping customer-facing product work, improving an internal workflow, or cleaning up a system that already exists but needs a clearer structure. The common thread is wanting the result to feel intentional, not merely finished."
+    }
+  ],
+  "count": 14,
+  "generated": "2026-05-10T18:26:17.696Z"
+}

@@ -1,0 +1,66 @@
+{
+  "files": [
+    {
+      "id": "awesome-web-app",
+      "file": "awesome-web-app.md",
+      "title": "Portfolio Publishing System",
+      "description": "A markdown-driven portfolio site designed for easy updates, stronger visual direction, and static deployment without framework overhead.",
+      "image": "{{PROJECT1_IMAGE}}",
+      "technologies": [
+        "JavaScript",
+        "Node.js",
+        "HTML",
+        "CSS",
+        "Markdown"
+      ],
+      "githubUrl": "",
+      "liveUrl": "",
+      "demoUrl": "",
+      "published": true,
+      "featured": true,
+      "date": "2026-03-01"
+    },
+    {
+      "id": "machine-learning-platform",
+      "file": "machine-learning-platform.md",
+      "title": "Operations Review Dashboard",
+      "description": "An internal dashboard concept for monitoring delivery health, release quality, and team-level operating signals in one place.",
+      "image": "{{PROJECT2_IMAGE}}",
+      "technologies": [
+        "TypeScript",
+        "React",
+        "Python",
+        "PostgreSQL",
+        "Charting"
+      ],
+      "githubUrl": "",
+      "liveUrl": "",
+      "demoUrl": "",
+      "published": true,
+      "featured": true,
+      "date": "2025-11-18"
+    },
+    {
+      "id": "mobile-fitness-app",
+      "file": "mobile-fitness-app.md",
+      "title": "Automation Pipeline Console",
+      "description": "A control surface concept for reviewing jobs, approvals, retries, and system health across a multi-step automation workflow.",
+      "image": "{{PROJECT3_IMAGE}}",
+      "technologies": [
+        "Python",
+        "FastAPI",
+        "JavaScript",
+        "Docker",
+        "PostgreSQL"
+      ],
+      "githubUrl": "",
+      "liveUrl": "",
+      "demoUrl": "",
+      "published": true,
+      "featured": false,
+      "date": "2025-08-09"
+    }
+  ],
+  "count": 3,
+  "generated": "2026-05-10T18:26:17.690Z"
+}
