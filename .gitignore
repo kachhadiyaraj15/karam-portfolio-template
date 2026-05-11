@@ -6,6 +6,11 @@ __pycache__/
 # Node
 node_modules/
 
+# Generated local API output
+api-public/
+dist/
+.wrangler/
+
 # IDE
 .vscode/
 .idea/

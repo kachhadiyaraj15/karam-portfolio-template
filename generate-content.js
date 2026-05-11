@@ -9,6 +9,30 @@
 const fs = require('fs');
 const path = require('path');
 
+function loadBuildDependency(packageName) {
+    try {
+        return require(packageName);
+    } catch (error) {
+        if (error.code === 'MODULE_NOT_FOUND') {
+            throw new Error(`Missing build dependency "${packageName}". Run "npm install" before "npm run build".`);
+        }
+        throw error;
+    }
+}
+
+const MarkdownIt = loadBuildDependency('markdown-it');
+const markdownItAnchor = loadBuildDependency('markdown-it-anchor');
+const markdownItFootnote = loadBuildDependency('markdown-it-footnote');
+const markdownItDeflist = loadBuildDependency('markdown-it-deflist');
+const markdownItMark = loadBuildDependency('markdown-it-mark');
+const markdownItSub = loadBuildDependency('markdown-it-sub');
+const markdownItSup = loadBuildDependency('markdown-it-sup');
+const markdownItTaskLists = loadBuildDependency('markdown-it-task-lists');
+const markdownItEmoji = loadBuildDependency('markdown-it-emoji');
+const hljs = loadBuildDependency('highlight.js');
+const katex = loadBuildDependency('katex');
+const cheerio = loadBuildDependency('cheerio');
+
 // Configuration Constants
 const EXCERPT_LENGTH = 160;
 
@@ -153,6 +177,545 @@ function stripFrontmatter(content) {
     return parts.slice(2).join('---').trim();
 }
 
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeRegExp(value) {
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function slugifyHeading(value) {
+    return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+}
+
+function getMarkdownItPlugin(plugin) {
+    if (typeof plugin === 'function') return plugin;
+    if (typeof plugin?.default === 'function') return plugin.default;
+    if (typeof plugin?.full === 'function') return plugin.full;
+    return null;
+}
+
+class BuildMarkdownRenderer {
+    constructor({ imageVariables = {}, notes = [] } = {}) {
+        this.imageVariables = imageVariables;
+        this.notes = notes;
+        this.md = new MarkdownIt({
+            html: true,
+            linkify: true,
+            breaks: false,
+            typographer: true,
+            highlight: (code, lang) => this.highlightCode(code, lang)
+        });
+
+        this.installMathRenderer();
+        this.usePlugin(markdownItFootnote);
+        this.usePlugin(markdownItDeflist);
+        this.usePlugin(markdownItMark);
+        this.usePlugin(markdownItSub);
+        this.usePlugin(markdownItSup);
+        this.usePlugin(markdownItTaskLists, { enabled: true });
+        this.usePlugin(markdownItEmoji);
+        this.usePlugin(markdownItAnchor, {
+            slugify: slugifyHeading,
+            level: [1, 2, 3, 4, 5, 6]
+        });
+
+        const defaultFence = this.md.renderer.rules.fence?.bind(this.md.renderer.rules);
+        this.md.renderer.rules.fence = (tokens, idx, opts, env, self) => {
+            const token = tokens[idx];
+            const info = token.info ? token.info.trim().toLowerCase() : '';
+
+            if (info === 'mermaid') {
+                return `<div class="mermaid">${escapeHtml(token.content.trim())}</div>`;
+            }
+
+            if (info === 'dataview' || info === 'chart' || info === 'kanban') {
+                return [
+                    `<div class="plugin-block plugin-${info}">`,
+                    `<div class="plugin-label">${info}</div>`,
+                    `<pre><code class="hljs language-${info}">${escapeHtml(token.content)}</code></pre>`,
+                    '</div>'
+                ].join('\n');
+            }
+
+            return defaultFence
+                ? defaultFence(tokens, idx, opts, env, self)
+                : self.renderToken(tokens, idx, opts);
+        };
+    }
+
+    usePlugin(pluginExport, options) {
+        const plugin = getMarkdownItPlugin(pluginExport);
+        if (plugin) {
+            this.md.use(plugin, options);
+        }
+    }
+
+    installMathRenderer() {
+        this.md.inline.ruler.after('escape', 'math_inline', (state, silent) => {
+            if (state.src[state.pos] !== '$' || state.src[state.pos + 1] === '$') {
+                return false;
+            }
+
+            const start = state.pos + 1;
+            let scan = start;
+            let end = -1;
+
+            while ((scan = state.src.indexOf('$', scan)) !== -1) {
+                if (scan > start && state.src[scan - 1] !== '\\') {
+                    end = scan;
+                    break;
+                }
+                scan += 1;
+            }
+
+            if (end === -1) return false;
+
+            if (!silent) {
+                const token = state.push('math_inline', 'math', 0);
+                token.content = state.src.slice(start, end);
+            }
+
+            state.pos = end + 1;
+            return true;
+        });
+
+        this.md.block.ruler.after('blockquote', 'math_block', (state, startLine, endLine, silent) => {
+            let pos = state.bMarks[startLine] + state.tShift[startLine];
+            let max = state.eMarks[startLine];
+
+            if (state.src.slice(pos, pos + 2) !== '$$') return false;
+
+            let nextLine = startLine;
+            let firstLine = state.src.slice(pos + 2, max);
+            let content = '';
+            let found = false;
+
+            if (firstLine.trim().endsWith('$$') && firstLine.trim().length > 2) {
+                content = firstLine.replace(/\$\$\s*$/, '');
+                found = true;
+            } else {
+                content = firstLine;
+
+                for (nextLine = startLine + 1; nextLine < endLine; nextLine += 1) {
+                    pos = state.bMarks[nextLine] + state.tShift[nextLine];
+                    max = state.eMarks[nextLine];
+                    const line = state.src.slice(pos, max);
+                    const closeIndex = line.indexOf('$$');
+
+                    if (closeIndex !== -1) {
+                        content += `\n${line.slice(0, closeIndex)}`;
+                        found = true;
+                        break;
+                    }
+
+                    content += `\n${line}`;
+                }
+            }
+
+            if (!found) return false;
+            if (silent) return true;
+
+            const token = state.push('math_block', 'math', 0);
+            token.block = true;
+            token.content = content.trim();
+            state.line = nextLine + 1;
+            return true;
+        }, {
+            alt: ['paragraph', 'reference', 'blockquote', 'list']
+        });
+
+        this.md.renderer.rules.math_inline = (tokens, idx) => this.renderMath(tokens[idx].content, false);
+        this.md.renderer.rules.math_block = (tokens, idx) => `<p>${this.renderMath(tokens[idx].content, true)}</p>\n`;
+    }
+
+    renderMath(content, displayMode) {
+        try {
+            return katex.renderToString(content, {
+                displayMode,
+                throwOnError: false,
+                strict: false,
+                trust: false
+            });
+        } catch (error) {
+            const className = displayMode ? 'math-error math-display' : 'math-error';
+            return `<span class="${className}">${escapeHtml(content)}</span>`;
+        }
+    }
+
+    highlightCode(code, lang) {
+        const language = String(lang || '').trim();
+        if (language && hljs.getLanguage(language)) {
+            try {
+                return `<pre><code class="hljs language-${escapeHtml(language)}">${hljs.highlight(code, { language, ignoreIllegals: true }).value}</code></pre>`;
+            } catch (error) {
+                // Fall through to escaped code.
+            }
+        }
+
+        return `<pre><code class="hljs">${escapeHtml(code)}</code></pre>`;
+    }
+
+    render(markdown, options = {}) {
+        if (!markdown) return '';
+
+        let prepared = this.replaceVariables(markdown);
+        prepared = this.removeComments(prepared);
+        prepared = this.injectBlockAnchors(prepared);
+
+        if (prepared.includes('[[')) {
+            prepared = this.replaceObsidianLinks(prepared, options);
+        }
+
+        let html = this.md.render(prepared);
+        html = html.replace(/<a href="(https?:\/\/[^"]+)"/g, '<a href="$1" target="_blank" rel="noopener noreferrer"');
+        html = this.transformCallouts(html);
+        html = this.decorateTags(html);
+        return html;
+    }
+
+    replaceVariables(text) {
+        let result = text;
+        for (const [key, value] of Object.entries(this.imageVariables)) {
+            result = result.replace(new RegExp(`\\{\\{${escapeRegExp(key)}\\}\\}`, 'g'), value);
+        }
+        return result;
+    }
+
+    removeComments(markdown) {
+        return markdown.replace(/%%[\s\S]*?%%/g, '');
+    }
+
+    injectBlockAnchors(markdown) {
+        return markdown.replace(/^(.+?)\s+\^([A-Za-z0-9_-]+)\s*$/gm, '$1 <span id="block-$2" class="block-anchor"></span>');
+    }
+
+    normalizeNoteKey(value) {
+        return String(value || '')
+            .trim()
+            .toLowerCase()
+            .replace(/\\/g, '/')
+            .replace(/\.md$/i, '');
+    }
+
+    parseObsidianReference(rawReference) {
+        const [targetPart, sizePart] = rawReference.split('|');
+        const rawTarget = (targetPart || '').trim();
+        const size = (sizePart || '').trim();
+        if (!rawTarget) {
+            return { target: '', size: '', noteName: '', heading: '', block: '' };
+        }
+
+        let noteName = rawTarget;
+        let heading = '';
+        let block = '';
+        const hashIndex = rawTarget.indexOf('#');
+        if (hashIndex >= 0) {
+            noteName = rawTarget.slice(0, hashIndex).trim();
+            const anchor = rawTarget.slice(hashIndex + 1).trim();
+            if (anchor.startsWith('^')) {
+                block = anchor.slice(1);
+            } else {
+                heading = anchor;
+            }
+        }
+
+        return { target: rawTarget, size, noteName: noteName.trim(), heading, block };
+    }
+
+    findNote(reference) {
+        const key = this.normalizeNoteKey(reference);
+        if (!key) return null;
+
+        return this.notes.find((note) => {
+            const candidates = [
+                note.id,
+                note.title,
+                note.name,
+                note.file,
+                note.path,
+                note.url,
+                ...(Array.isArray(note.aliases) ? note.aliases : [])
+            ];
+
+            return candidates.some(candidate => this.normalizeNoteKey(candidate) === key);
+        }) || null;
+    }
+
+    buildNoteHref(note, heading = '', block = '') {
+        if (!note) return '#';
+        if (block) return `${note.url}#block-${block}`;
+        if (heading) return `${note.url}#${slugifyHeading(heading)}`;
+        return note.url;
+    }
+
+    extractHeadingSection(markdown, heading) {
+        const lines = markdown.split('\n');
+        const headingText = heading.trim().toLowerCase();
+        let startIndex = -1;
+        let headingLevel = 0;
+
+        for (let i = 0; i < lines.length; i++) {
+            const match = lines[i].match(/^(#{1,6})\s+(.*)$/);
+            if (!match) continue;
+            if (match[2].trim().toLowerCase() === headingText) {
+                startIndex = i;
+                headingLevel = match[1].length;
+                break;
+            }
+        }
+
+        if (startIndex === -1) return markdown;
+
+        const collected = [];
+        for (let i = startIndex; i < lines.length; i++) {
+            const match = lines[i].match(/^(#{1,6})\s+(.*)$/);
+            if (i !== startIndex && match && match[1].length <= headingLevel) {
+                break;
+            }
+            collected.push(lines[i]);
+        }
+
+        return collected.join('\n');
+    }
+
+    extractBlock(markdown, blockId) {
+        const lines = markdown.split('\n');
+        const target = `^${blockId}`;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes(target)) {
+                return lines[i].replace(new RegExp(`\\s*\\^${escapeRegExp(blockId)}\\s*$`), '');
+            }
+        }
+        return markdown;
+    }
+
+    replaceObsidianLinks(markdown, options) {
+        const codePlaceholders = [];
+        const protect = (pattern) => {
+            markdown = markdown.replace(pattern, (match) => {
+                const token = `__MD_PLACEHOLDER_${codePlaceholders.length}__`;
+                codePlaceholders.push(match);
+                return token;
+            });
+        };
+
+        protect(/```[\s\S]*?```/g);
+        protect(/`[^`\n]+`/g);
+
+        markdown = markdown.replace(/!\[\[([^\]]+)\]\]/g, (_, reference) => `\n\n${this.renderObsidianEmbed(reference, options)}\n\n`);
+        markdown = markdown.replace(/\[\[([^\]]+)\]\]/g, (_, reference) => this.renderObsidianLink(reference));
+
+        codePlaceholders.forEach((value, index) => {
+            markdown = markdown.replace(`__MD_PLACEHOLDER_${index}__`, value);
+        });
+
+        return markdown;
+    }
+
+    renderObsidianLink(reference) {
+        const [targetPart, aliasPart] = reference.split('|');
+        const resolved = this.parseObsidianReference(targetPart);
+        const alias = (aliasPart || '').trim();
+
+        if (!resolved.noteName && resolved.heading) {
+            return `<a href="#${slugifyHeading(resolved.heading)}" class="wikilink">${escapeHtml(alias || resolved.heading)}</a>`;
+        }
+
+        const note = this.findNote(resolved.noteName || resolved.target);
+        if (!note) {
+            return `<span class="wikilink missing">${escapeHtml(alias || resolved.target)}</span>`;
+        }
+
+        const label = alias || note.title || resolved.noteName || resolved.target;
+        return `<a href="${this.buildNoteHref(note, resolved.heading, resolved.block)}" class="wikilink">${escapeHtml(label)}</a>`;
+    }
+
+    renderObsidianEmbed(reference, options = {}) {
+        const resolved = this.parseObsidianReference(reference);
+        const target = resolved.target;
+
+        if (this.isImageFile(target)) {
+            const mediaUrl = this.resolveMediaUrl(target);
+            const size = this.parseObsidianImageSize(resolved.size);
+            const style = [
+                size.width ? `width:${size.width}px` : '',
+                size.height ? `height:${size.height}px` : ''
+            ].filter(Boolean).join(';');
+            return `<img src="${mediaUrl}" alt="${escapeHtml(target)}" loading="lazy"${style ? ` style="${style}"` : ''}>`;
+        }
+
+        if (this.isPdfFile(target)) {
+            return `<iframe class="file-embed file-embed-pdf" src="${this.resolveMediaUrl(target)}" title="${escapeHtml(target)}"></iframe>`;
+        }
+
+        if (this.isAudioFile(target)) {
+            return `<audio class="file-embed file-embed-audio" controls src="${this.resolveMediaUrl(target)}"></audio>`;
+        }
+
+        if (this.isVideoFile(target)) {
+            return `<video class="file-embed file-embed-video" controls src="${this.resolveMediaUrl(target)}"></video>`;
+        }
+
+        return this.renderEmbeddedNote(reference, options);
+    }
+
+    renderEmbeddedNote(reference, options = {}) {
+        const resolved = this.parseObsidianReference(reference);
+        const note = this.findNote(resolved.noteName || resolved.target);
+        if (!note) {
+            return `<div class="note-embed missing"><div class="note-embed-label">Missing note</div><div class="note-embed-body">${escapeHtml(reference)}</div></div>`;
+        }
+
+        const depth = options.depth || 0;
+        const visited = new Set(options.visited || []);
+        if (visited.has(note.url) || depth > 3) {
+            return `<div class="note-embed"><div class="note-embed-label">Embedded note</div><div class="note-embed-body"><a href="${this.buildNoteHref(note, resolved.heading, resolved.block)}">${escapeHtml(note.title)}</a></div></div>`;
+        }
+
+        visited.add(note.url);
+        let embeddedMarkdown = note.content || '';
+        if (!embeddedMarkdown.trim()) {
+            return `<div class="note-embed"><div class="note-embed-label">Embedded note</div><div class="note-embed-body"><a href="${this.buildNoteHref(note, resolved.heading, resolved.block)}">${escapeHtml(note.title)}</a></div></div>`;
+        }
+
+        if (resolved.heading) {
+            embeddedMarkdown = this.extractHeadingSection(embeddedMarkdown, resolved.heading);
+        }
+        if (resolved.block) {
+            embeddedMarkdown = this.extractBlock(embeddedMarkdown, resolved.block);
+        }
+
+        const embeddedHtml = this.render(embeddedMarkdown, {
+            depth: depth + 1,
+            visited
+        });
+
+        return [
+            '<article class="note-embed">',
+            '<div class="note-embed-label">',
+            `<span>Embedded note</span><a href="${this.buildNoteHref(note, resolved.heading, resolved.block)}">${escapeHtml(note.title)}</a>`,
+            '</div>',
+            '<div class="note-embed-body prose">',
+            embeddedHtml,
+            '</div>',
+            '</article>'
+        ].join('\n');
+    }
+
+    isImageFile(target) {
+        return /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(target);
+    }
+
+    isAudioFile(target) {
+        return /\.(mp3|wav|ogg|m4a)$/i.test(target);
+    }
+
+    isVideoFile(target) {
+        return /\.(mp4|webm|mov|m4v)$/i.test(target);
+    }
+
+    isPdfFile(target) {
+        return /\.pdf$/i.test(target);
+    }
+
+    resolveMediaUrl(target) {
+        const trimmed = target.trim();
+        if (/^(https?:)?\/\//i.test(trimmed) || trimmed.includes('/')) {
+            return trimmed;
+        }
+        if (this.isImageFile(trimmed)) {
+            return `assets/images/${trimmed}`;
+        }
+        return trimmed;
+    }
+
+    parseObsidianImageSize(sizeValue) {
+        if (!sizeValue) return {};
+        const exact = sizeValue.trim().match(/^(\d+)x(\d+)$/i);
+        if (exact) {
+            return { width: exact[1], height: exact[2] };
+        }
+        const widthOnly = sizeValue.trim().match(/^(\d+)$/);
+        if (widthOnly) {
+            return { width: widthOnly[1] };
+        }
+        return {};
+    }
+
+    transformCallouts(html) {
+        const $ = cheerio.load(html, { decodeEntities: false }, false);
+
+        $('blockquote').each((_, element) => {
+            const blockquote = $(element);
+            const firstParagraph = blockquote.children('p').first();
+            if (!firstParagraph.length) return;
+
+            const lines = firstParagraph.html().trim().split(/\n+/);
+            const markerLine = (lines.shift() || '').trim();
+            const match = markerLine.match(/^\[!([A-Za-z0-9_-]+)\]([+-])?\s*(.*)$/);
+            if (!match) return;
+
+            const type = match[1].toLowerCase();
+            const foldState = match[2] || '';
+            const title = match[3] || type.charAt(0).toUpperCase() + type.slice(1);
+            const inlineBodyHtml = lines.join('<br>').trim();
+            const bodyParts = [];
+            if (inlineBodyHtml) {
+                bodyParts.push(`<p>${inlineBodyHtml}</p>`);
+            }
+            blockquote.children().slice(1).each((__, child) => {
+                bodyParts.push($.html(child));
+            });
+            const body = `<div class="callout-content">${bodyParts.join('')}</div>`;
+
+            if (foldState) {
+                blockquote.replaceWith(`<details class="callout callout-${type}"${foldState === '+' ? ' open' : ''}><summary class="callout-title">${escapeHtml(title)}</summary>${body}</details>`);
+                return;
+            }
+
+            blockquote.replaceWith(`<div class="callout callout-${type}"><div class="callout-title">${escapeHtml(title)}</div>${body}</div>`);
+        });
+
+        return $.html();
+    }
+
+    decorateTags(html) {
+        const $ = cheerio.load(html, { decodeEntities: false }, false);
+        const skipParents = new Set(['a', 'code', 'pre', 'script', 'style']);
+
+        function decorateNode(node) {
+            const element = $(node);
+            if (node.type === 'text') {
+                const parentName = node.parent?.name?.toLowerCase();
+                if (skipParents.has(parentName)) return;
+                const text = node.data || '';
+                if (!/(^|\s)#([A-Za-z0-9/_-]+)/.test(text)) return;
+                element.replaceWith(escapeHtml(text).replace(/(^|\s)#([A-Za-z0-9/_-]+)/g, '$1<span class="obsidian-tag">#$2</span>'));
+                return;
+            }
+
+            if (node.children && !skipParents.has(node.name?.toLowerCase())) {
+                node.children.slice().forEach(decorateNode);
+            }
+        }
+
+        $.root().contents().toArray().forEach(decorateNode);
+        return $.html();
+    }
+}
+
 function createNoteRecord({ id, title, kind, sourcePath, url, content, aliases = [], category = null, tags = [], date = '' }) {
     const aliasSet = new Set([
         id,
@@ -255,6 +818,13 @@ function replaceThemeToggleDefault(html) {
         .replace(/(<span class="theme-label">)[\s\S]*?(<\/span>)/, '$1Dark mode$2');
 }
 
+function removeBuildTimeMarkdownScripts(html) {
+    return html.replace(
+        /^\s*<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/(?:markdown-it[^"]*|highlight\.js@[^"]*\/lib\/common\.min\.js)" defer><\/script>\r?\n?/gm,
+        ''
+    );
+}
+
 function renderHtmlShells(siteConfig) {
     console.log('  🧱 HTML shells...');
 
@@ -278,6 +848,7 @@ function renderHtmlShells(siteConfig) {
         html = replaceTagContent(html, 'p', 'footer-text', footerText);
         html = replaceNavigation(html, buildNavigationHTML(siteConfig, shell.page));
         html = replaceThemeToggleDefault(html);
+        html = removeBuildTimeMarkdownScripts(html);
         fs.writeFileSync(filePath, html);
     });
 
@@ -344,7 +915,7 @@ function parseFrontmatter(content) {
 /**
  * Generate blog files list
  */
-function generateBlogFiles() {
+function generateBlogFiles(renderer) {
     console.log('  📝 Blog posts...');
 
     const blogFiles = getMarkdownFiles(BLOG_DIR);
@@ -354,6 +925,7 @@ function generateBlogFiles() {
         const filePath = path.join(BLOG_DIR, fileInfo.file);
         const content = readFileContent(filePath);
         const metadata = parseFrontmatter(content);
+        const markdownContent = stripFrontmatter(content);
 
         // Only include published posts
         if (metadata.published !== false) {
@@ -366,7 +938,9 @@ function generateBlogFiles() {
                 id,
                 file: `blog/${fileInfo.file}`,
                 ...metadata,
-                excerpt: metadata.excerpt || (content.split('---').slice(2).join('---').trim().slice(0, EXCERPT_LENGTH) + '...')
+                content: markdownContent,
+                html: renderer.render(markdownContent),
+                excerpt: metadata.excerpt || (markdownContent.trim().slice(0, EXCERPT_LENGTH) + '...')
             });
         }
     }
@@ -402,7 +976,7 @@ function createPlaylistSummary(post) {
     };
 }
 
-function generatePlaylistFiles(blogPosts = []) {
+function generatePlaylistFiles(blogPosts = [], renderer) {
     console.log('  🎞️  Playlists...');
 
     const playlists = [];
@@ -417,6 +991,7 @@ function generatePlaylistFiles(blogPosts = []) {
         const filePath = path.join(PLAYLISTS_DIR, fileInfo.file);
         const content = readFileContent(filePath);
         const metadata = parseFrontmatter(content);
+        const markdownContent = stripFrontmatter(content);
         if (metadata.published === false) continue;
 
         const id = createIdFromPath(fileInfo.file);
@@ -445,7 +1020,8 @@ function generatePlaylistFiles(blogPosts = []) {
             posts,
             postIds: posts.map(post => post.id),
             count: posts.length,
-            content: stripFrontmatter(content)
+            content: markdownContent,
+            html: renderer.render(markdownContent)
         });
     }
 
@@ -470,7 +1046,7 @@ function generatePlaylistFiles(blogPosts = []) {
 /**
  * Generate project files list
  */
-function generateProjectFiles() {
+function generateProjectFiles(renderer) {
     console.log('  🚀 Projects...');
 
     const enrichedProjects = [];
@@ -482,6 +1058,7 @@ function generateProjectFiles() {
                 const filePath = path.join(PROJECTS_DIR, item);
                 const content = readFileContent(filePath);
                 const metadata = parseFrontmatter(content);
+                const markdownContent = stripFrontmatter(content);
 
                 if (metadata.published !== false) {
                     // Extract id from filename
@@ -490,7 +1067,9 @@ function generateProjectFiles() {
                     enrichedProjects.push({
                         id,
                         file: item,
-                        ...metadata
+                        ...metadata,
+                        content: markdownContent,
+                        html: renderer.render(markdownContent)
                     });
                 }
             }
@@ -517,14 +1096,16 @@ function generateProjectFiles() {
 /**
  * Generate home content
  */
-function generateHomeContent() {
+function generateHomeContent(renderer) {
     console.log('  🏠 Home page...');
 
     const homePath = path.join(HOME_DIR, 'home.md');
     const content = fs.existsSync(homePath) ? readFileContent(homePath) : '';
+    const markdownContent = stripFrontmatter(content);
 
     const output = {
         content: content,
+        html: renderer.render(markdownContent),
         exists: content.length > 0,
         generated: new Date().toISOString()
     };
@@ -540,14 +1121,16 @@ function generateHomeContent() {
 /**
  * Generate about content
  */
-function generateAboutContent() {
+function generateAboutContent(renderer) {
     console.log('  👤 About page...');
 
     const aboutPath = path.join(ABOUT_DIR, 'about.md');
     const content = fs.existsSync(aboutPath) ? readFileContent(aboutPath) : '';
+    const markdownContent = stripFrontmatter(content);
 
     const output = {
         content: content,
+        html: renderer.render(markdownContent),
         exists: content.length > 0,
         generated: new Date().toISOString()
     };
@@ -587,7 +1170,7 @@ function generateImageConfig() {
     return variables;
 }
 
-function generateExperienceFiles() {
+function generateExperienceFiles(renderer) {
     console.log('  💼 Experience...');
 
     const experienceFiles = getMarkdownFiles(EXPERIENCE_DIR);
@@ -597,6 +1180,7 @@ function generateExperienceFiles() {
         const filePath = path.join(EXPERIENCE_DIR, fileInfo.file);
         const content = readFileContent(filePath);
         const metadata = parseFrontmatter(content);
+        const markdownContent = stripFrontmatter(content);
 
         if (metadata.published !== false) {
             const id = createIdFromPath(fileInfo.file);
@@ -605,7 +1189,9 @@ function generateExperienceFiles() {
                 file: fileInfo.file,
                 category: fileInfo.category,
                 employmentType: metadata.employmentType || fileInfo.category || 'General',
-                ...metadata
+                ...metadata,
+                content: markdownContent,
+                html: renderer.render(markdownContent)
             });
         }
     }
@@ -657,9 +1243,7 @@ function generateSiteConfig() {
     return config;
 }
 
-function generateNotesIndex() {
-    console.log('  📚 Notes index...');
-
+function collectNotesIndex() {
     const notes = [];
 
     // Blog notes
@@ -770,16 +1354,27 @@ function generateNotesIndex() {
         }));
     }
 
+    return notes;
+}
+
+function generateNotesIndex(notes, renderer) {
+    console.log('  📚 Notes index...');
+
+    const renderedNotes = notes.map(note => ({
+        ...note,
+        html: renderer.render(note.content || '')
+    }));
+
     fs.writeFileSync(
         path.join(OUTPUT_DIR, 'notes.json'),
         JSON.stringify({
-            notes,
-            count: notes.length,
+            notes: renderedNotes,
+            count: renderedNotes.length,
             generated: new Date().toISOString()
         }, null, 2)
     );
 
-    console.log(`     ✓ Indexed ${notes.length} notes`);
+    console.log(`     ✓ Indexed ${renderedNotes.length} notes`);
 }
 
 /**
@@ -789,15 +1384,18 @@ function main() {
     console.log('🔨 Building static content...\n');
 
     try {
-        const blogPosts = generateBlogFiles();
-        generatePlaylistFiles(blogPosts);
-        generateProjectFiles();
-        generateExperienceFiles();
-        generateHomeContent();
-        generateAboutContent();
         const imageVariables = generateImageConfig();
         const siteConfig = generateSiteConfig();
-        generateNotesIndex();
+        const notes = collectNotesIndex();
+        const renderer = new BuildMarkdownRenderer({ imageVariables, notes });
+
+        const blogPosts = generateBlogFiles(renderer);
+        generatePlaylistFiles(blogPosts, renderer);
+        generateProjectFiles(renderer);
+        generateExperienceFiles(renderer);
+        generateHomeContent(renderer);
+        generateAboutContent(renderer);
+        generateNotesIndex(notes, renderer);
         generateConfigBootstrap(siteConfig, imageVariables);
         renderHtmlShells(siteConfig);
 

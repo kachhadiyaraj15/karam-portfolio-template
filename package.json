@@ -4,8 +4,11 @@
     "description": "Personal portfolio website - works on any static hosting platform",
     "scripts": {
         "build": "node generate-content.js",
+        "build:pages": "npm run build && node prepare-deploy.js",
         "dev": "npm run build && python server.py",
-        "serve": "python server.py"
+        "serve": "python server.py",
+        "deploy": "npm run build:pages && npx wrangler deploy",
+        "preview": "npm run build:pages && npx wrangler dev"
     },
     "keywords": [
         "portfolio",
@@ -13,5 +16,19 @@
         "static-site"
     ],
     "author": "",
-    "license": "MIT"
+    "license": "MIT",
+    "dependencies": {
+        "cheerio": "1.0.0",
+        "highlight.js": "11.11.1",
+        "katex": "0.16.25",
+        "markdown-it": "14.1.0",
+        "markdown-it-anchor": "8.6.7",
+        "markdown-it-deflist": "3.0.0",
+        "markdown-it-emoji": "3.0.0",
+        "markdown-it-footnote": "4.0.0",
+        "markdown-it-mark": "4.0.0",
+        "markdown-it-sub": "2.0.0",
+        "markdown-it-sup": "2.0.0",
+        "markdown-it-task-lists": "2.1.1"
+    }
 }

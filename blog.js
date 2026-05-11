@@ -1734,12 +1734,19 @@ class BlogSystem {
         this.updatePageMeta(post);
 
         try {
-            // Since listings only contain metadata now, fetch the full markdown content for the post
-            const response = await fetch(post.file);
-            const rawContent = await response.text();
-            const parsedPost = this.parseFrontmatter(rawContent, post.id, post.category);
+            let html = post.html || '';
 
-            const html = await this.markdownParser.parse(parsedPost.content);
+            if (!html && post.content) {
+                html = await this.markdownParser.parse(post.content);
+            }
+
+            if (!html) {
+                const response = await fetch(post.file);
+                const rawContent = await response.text();
+                const parsedPost = this.parseFrontmatter(rawContent, post.id, post.category);
+                html = await this.markdownParser.parse(parsedPost.content);
+            }
+
             this.renderBlogPost(post, html);
 
         } catch (error) {
@@ -2072,9 +2079,9 @@ class PlaylistSystem {
 
         this.updatePageMeta(playlist);
 
-        const bodyHTML = playlist.content
+        const bodyHTML = playlist.html || (playlist.content
             ? await this.markdownParser.parse(playlist.content)
-            : '';
+            : '');
         this.renderPlaylistDetail(playlist, bodyHTML);
     }
 
@@ -2564,12 +2571,19 @@ class ProjectSystem {
         this.updatePageMeta(project);
 
         try {
-            // Since listings only contain metadata now, fetch the full markdown content for the project
-            const response = await fetch(`projects/${project.file}`);
-            const rawContent = await response.text();
-            const parsedProject = this.parseFrontmatter(rawContent, project.file);
+            let html = project.html || '';
 
-            const html = await this.markdownParser.parse(parsedProject.content);
+            if (!html && project.content) {
+                html = await this.markdownParser.parse(project.content);
+            }
+
+            if (!html) {
+                const response = await fetch(`projects/${project.file}`);
+                const rawContent = await response.text();
+                const parsedProject = this.parseFrontmatter(rawContent, project.file);
+                html = await this.markdownParser.parse(parsedProject.content);
+            }
+
             this.renderProjectDetail(project, html);
 
         } catch (error) {
@@ -2856,10 +2870,19 @@ class ExperienceSystem {
         this.updatePageMeta(entry);
 
         try {
-            const response = await fetch(`experience/${entry.file}`);
-            const rawContent = await response.text();
-            const parsedEntry = this.parseFrontmatter(rawContent, entry.file);
-            const html = await this.markdownParser.parse(parsedEntry.content);
+            let html = entry.html || '';
+
+            if (!html && entry.content) {
+                html = await this.markdownParser.parse(entry.content);
+            }
+
+            if (!html) {
+                const response = await fetch(`experience/${entry.file}`);
+                const rawContent = await response.text();
+                const parsedEntry = this.parseFrontmatter(rawContent, entry.file);
+                html = await this.markdownParser.parse(parsedEntry.content);
+            }
+
             this.renderExperienceDetail(entry, html);
         } catch (error) {
             console.error('Error loading experience detail:', error);
@@ -3014,7 +3037,7 @@ class HomeSystem {
             }
 
             const { frontmatter, markdownContent } = this.parseFrontmatter(data.content);
-            this.homeData = { ...frontmatter, content: markdownContent };
+            this.homeData = { ...frontmatter, content: markdownContent, html: data.html || '' };
 
             await this.renderHomePage(container, this.homeData);
 
@@ -3025,8 +3048,7 @@ class HomeSystem {
     }
 
     async renderHomePage(container, data) {
-        // Parse markdown content
-        const htmlContent = await this.markdownParser.parse(data.content);
+        const htmlContent = data.html || await this.markdownParser.parse(data.content);
         const showBio = this.configManager?.getSiteConfig('home_show_bio') !== false;
         const showSocial = this.configManager?.isFeatureEnabled('social_links') &&
             this.configManager?.getSiteConfig('home_show_social') !== false;
@@ -3162,7 +3184,7 @@ class AboutSystem {
             }
 
             const { frontmatter, markdownContent } = this.parseFrontmatter(data.content);
-            this.aboutData = { ...frontmatter, content: markdownContent };
+            this.aboutData = { ...frontmatter, content: markdownContent, html: data.html || '' };
 
             await this.renderAboutPage(container, this.aboutData);
 
@@ -3173,8 +3195,7 @@ class AboutSystem {
     }
 
     async renderAboutPage(container, data) {
-        // Parse markdown content
-        const htmlContent = await this.markdownParser.parse(data.content);
+        const htmlContent = data.html || await this.markdownParser.parse(data.content);
         const showLocation = this.configManager?.getSiteConfig('about_show_location') !== false;
         const showSocial = this.configManager?.isFeatureEnabled('social_links') &&
             this.configManager?.getSiteConfig('about_show_social') !== false;
@@ -3505,10 +3526,6 @@ class MarkdownParser {
 
         if (markdown.includes('[[')) {
             markdown = await this.replaceObsidianLinks(markdown, options);
-        }
-
-        if (window.markdownit) {
-            return this.parseWithMarkdownIt(markdown);
         }
 
         return this.parseFallback(markdown);
@@ -3880,104 +3897,6 @@ class MarkdownParser {
         }).join('');
 
         return `${transformed}\n\n<section class="footnotes"><ol>${items}</ol></section>`;
-    }
-
-    parseWithMarkdownIt(markdown) {
-        const md = window.markdownit({
-            html: true,
-            linkify: true,
-            breaks: false,
-            typographer: true,
-            highlight: (str, lang) => {
-                if (window.hljs && lang && window.hljs.getLanguage(lang)) {
-                    try {
-                        return `<pre><code class="hljs language-${escapeHtml(lang)}">${window.hljs.highlight(str, { language: lang, ignoreIllegals: true }).value}</code></pre>`;
-                    } catch (error) {
-                        // Fall back to escaped code block below.
-                    }
-                }
-
-                return `<pre><code class="hljs">${escapeHtml(str)}</code></pre>`;
-            }
-        });
-
-        // KaTeX: try multiple global names (different CDN bundles export under different names)
-        const katexPlugin = this.getMarkdownItPlugin('markdownitKatex', 'markdownItKatex', 'markdownKatex');
-        if (katexPlugin && typeof katexPlugin === 'function') {
-            md.use(katexPlugin);
-        } else {
-            markdown = this.applyMathFallback(markdown);
-        }
-
-        const otherPlugins = [
-            this.getMarkdownItPlugin('markdownitDeflist', 'markdownItDeflist'),
-            this.getMarkdownItPlugin('markdownitMark', 'markdownItMark'),
-            this.getMarkdownItPlugin('markdownitSub', 'markdownItSub'),
-            this.getMarkdownItPlugin('markdownitSup', 'markdownItSup')
-        ];
-
-        const footnotePlugin = this.getMarkdownItPlugin('markdownitFootnote', 'markdownItFootnote');
-        if (footnotePlugin) {
-            md.use(footnotePlugin);
-        } else {
-            markdown = this.applyFootnoteFallback(markdown);
-        }
-
-        otherPlugins.forEach(plugin => {
-            if (typeof plugin === 'function') {
-                md.use(plugin);
-            }
-        });
-
-        // Task lists — pass enabled:true so checkboxes are interactive
-        const taskListPlugin = this.getMarkdownItPlugin('markdownitTaskLists', 'markdownItTaskLists');
-        if (taskListPlugin) {
-            md.use(taskListPlugin, { enabled: true });
-        }
-
-        const emojiPlugin = this.getMarkdownItPlugin('markdownitEmoji', 'markdownItEmoji');
-        if (emojiPlugin) {
-            md.use(emojiPlugin);
-        }
-
-        const anchorPlugin = this.getMarkdownItPlugin('markdownitAnchor', 'markdownItAnchor');
-        if (anchorPlugin) {
-            md.use(anchorPlugin, {
-                slugify: slugifyHeading,
-                level: [1, 2, 3, 4, 5, 6]
-            });
-        }
-
-        const defaultFence = md.renderer.rules.fence?.bind(md.renderer.rules) || null;
-        md.renderer.rules.fence = (tokens, idx, opts, env, self) => {
-            const token = tokens[idx];
-            const info = token.info ? token.info.trim().toLowerCase() : '';
-
-            if (info === 'mermaid') {
-                return `<div class="mermaid">${escapeHtml(token.content)}</div>`;
-            }
-
-            if (info === 'dataview' || info === 'chart' || info === 'kanban') {
-                return `
-                    <div class="plugin-block plugin-${info}">
-                        <div class="plugin-label">${info}</div>
-                        <pre><code class="hljs language-${info}">${escapeHtml(token.content)}</code></pre>
-                    </div>
-                `;
-            }
-
-            if (defaultFence) {
-                return defaultFence(tokens, idx, opts, env, self);
-            }
-
-            return self.renderToken(tokens, idx, opts);
-        };
-
-        let html = md.render(markdown);
-        html = html.replace(/<a href="(https?:\/\/[^"]+)"/g, '<a href="$1" target="_blank" rel="noopener noreferrer"');
-        html = this.transformCallouts(html);
-        html = this.decorateTags(html);
-        return html;
     }
 
     transformCallouts(html) {

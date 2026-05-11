@@ -59,9 +59,10 @@
         "understanding-async-javascript"
       ],
       "count": 3,
-      "content": "Use this playlist as a guided sequence for frontend-focused posts. It starts with visual QA and markdown rendering, then moves into broader web development and JavaScript implementation notes."
+      "content": "Use this playlist as a guided sequence for frontend-focused posts. It starts with visual QA and markdown rendering, then moves into broader web development and JavaScript implementation notes.",
+      "html": "<p>Use this playlist as a guided sequence for frontend-focused posts. It starts with visual QA and markdown rendering, then moves into broader web development and JavaScript implementation notes.</p>\n"
     }
   ],
   "count": 1,
-  "generated": "2026-05-10T18:26:17.689Z"
+  "generated": "2026-05-11T02:13:34.017Z"
 }

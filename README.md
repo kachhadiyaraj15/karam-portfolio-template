@@ -9,9 +9,16 @@ The main idea is simple: edit markdown source files, run the build command, and 
 Prerequisites:
 
 - Node.js, for running the static content generator
+- npm, for installing the build-time markdown renderer dependencies
 - Python 3, for the local preview server
 
-No npm packages are required by the current template. The markdown, Mermaid, KaTeX, and syntax-highlight libraries are loaded from CDN in the browser, and the build script only uses Node built-in modules.
+Install dependencies once after cloning:
+
+```bash
+npm install
+```
+
+Markdown is rendered during `npm run build`. The generated `api-static/` JSON contains HTML-ready content for blog posts, projects, experience, home, about, playlists, and note embeds. The browser no longer loads markdown parser or syntax-highlight JavaScript packages; Mermaid JavaScript still runs in the browser to draw generated Mermaid diagram blocks.
 
 Start the local site:
 
@@ -30,6 +37,14 @@ Only rebuild generated content:
 ```bash
 npm run build
 ```
+
+Build the deployable static folder:
+
+```bash
+npm run build:pages
+```
+
+This creates `dist/`, which is the folder Cloudflare Pages or Wrangler should publish.
 
 Start the preview server without rebuilding:
 
@@ -55,21 +70,29 @@ Edit these files and folders:
 Generated files:
 
 - `api-static/`
+- `dist/`, when you run `npm run build:pages`
 - top-level generated HTML shell updates
 
 Do not edit `api-static/` manually. It is rebuilt from markdown by `npm run build`.
+Do not edit `dist/` manually. It is rebuilt by `npm run build:pages`.
 
 ## Normal editing workflow
 
 1. Edit the markdown file you want to change.
-2. Run:
+2. Install dependencies if this is a fresh clone:
+
+```bash
+npm install
+```
+
+3. Run:
 
 ```bash
 npm run build
 ```
 
-3. Refresh the local site.
-4. Commit both the source markdown changes and generated files.
+4. Refresh the local site.
+5. Commit both the source markdown changes and generated files.
 
 Common changes:
 
@@ -753,16 +776,29 @@ This site can be deployed to static hosting.
 
 Recommended Vercel settings:
 
+- Install Command: `npm install`
 - Build Command: `npm run build`
 - Output Directory: `.`
+
+Recommended Cloudflare Pages settings:
+
+- Install Command: `npm ci`
+- Build Command: `npm run build:pages`
+- Build Output Directory: `dist`
+- Deploy Command: leave blank
+
+Do not set the Cloudflare deploy command to `npx wrangler deploy` for a Pages project. If Wrangler deploys the repository root, it can try to upload `node_modules/` as public assets and fail on large internal binaries. This template includes `wrangler.jsonc` for direct Wrangler deploys, and it points assets at `./dist`.
 
 General deployment workflow:
 
 1. Edit markdown.
-2. Run `npm run build`.
-3. Test locally with `npm run serve` or `npm run dev`.
-4. Push to your Git provider.
-5. Let the hosting provider deploy the static files.
+2. Run `npm install` if dependencies are not installed yet.
+3. Run `npm run build` for normal generated content, or `npm run build:pages` when publishing from `dist`.
+4. Test locally with `npm run serve` or `npm run dev`.
+5. Push to your Git provider.
+6. Let the hosting provider deploy the static files.
+
+For hosts that do not run builds, commit the generated `api-static/` files and generated shell updates after `npm run build`. For hosts that run builds, the source markdown and `package-lock.json` are enough for the provider to regenerate the static output.
 
 ## Troubleshooting
 
