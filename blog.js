@@ -182,6 +182,27 @@ function buildRuntimeUrl(configManager, pagePath = '') {
     return new URL(normalizedPath || window.location.pathname.replace(/^\//, ''), baseUrl).href;
 }
 
+function getPathDetailId(routeName, pathname = window.location.pathname) {
+    const route = String(routeName || '').replace(/\.html$/i, '');
+    const segments = decodeURIComponent(pathname || '')
+        .replace(/\\/g, '/')
+        .split('/')
+        .filter(Boolean)
+        .map(segment => segment.replace(/\.html$/i, ''));
+    const routeIndex = segments.findIndex(segment => segment === route);
+
+    if (routeIndex === -1 || !segments[routeIndex + 1]) {
+        return '';
+    }
+
+    return segments[routeIndex + 1].trim();
+}
+
+function getUrlDetailId(routeName, paramName = 'id') {
+    const urlParams = new URLSearchParams(window.location.search);
+    return (urlParams.get(paramName) || getPathDetailId(routeName) || '').trim();
+}
+
 function getRuntimeImageUrl(configManager, imagePath = '') {
     const configuredImage = imagePath || getConfigValue(configManager, 'seo_image', 'og_image', 'site_image');
     if (!configuredImage) return '';
@@ -1857,7 +1878,7 @@ class BlogSystem {
             const showTags = this.configManager?.getSiteConfig('blog_show_tags') !== false;
             const card = document.createElement('article');
             card.className = 'blog-card';
-            const postHref = `blog-post.html?id=${encodeURIComponent(post.id)}`;
+            const postHref = `blog-post/${encodeURIComponent(post.id)}/`;
             card.onclick = () => window.location.href = postHref;
             card.setAttribute('role', 'link');
             card.setAttribute('tabindex', '0');
@@ -1915,7 +1936,7 @@ class BlogSystem {
 
     async loadBlogPost() {
         const urlParams = new URLSearchParams(window.location.search);
-        const postId = (urlParams.get('id') || '').trim();
+        const postId = getUrlDetailId('blog-post');
 
         if (!postId) {
             window.location.href = 'blog.html';
@@ -1958,7 +1979,7 @@ class BlogSystem {
 
     updatePageMeta(post) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
-        const pagePath = `blog-post.html?id=${encodeURIComponent(post.id)}`;
+        const pagePath = `blog-post/${encodeURIComponent(post.id)}/`;
         const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
         const author = buildRuntimePersonSchema(this.configManager);
 

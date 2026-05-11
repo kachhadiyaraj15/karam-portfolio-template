@@ -1,0 +1,14 @@
+/api-static/*
+  Cache-Control: no-cache, must-revalidate
+
+/blog.js
+  Cache-Control: no-cache, must-revalidate
+
+/blog-post
+  Cache-Control: no-cache, must-revalidate
+
+/blog-post/*
+  Cache-Control: no-cache, must-revalidate
+
+/*.html
+  Cache-Control: no-cache, must-revalidate
