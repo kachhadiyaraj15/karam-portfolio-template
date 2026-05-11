@@ -1857,13 +1857,14 @@ class BlogSystem {
             const showTags = this.configManager?.getSiteConfig('blog_show_tags') !== false;
             const card = document.createElement('article');
             card.className = 'blog-card';
-            card.onclick = () => window.location.href = `blog-post.html?id=${post.id}`;
+            const postHref = `blog-post.html?id=${encodeURIComponent(post.id)}`;
+            card.onclick = () => window.location.href = postHref;
             card.setAttribute('role', 'link');
             card.setAttribute('tabindex', '0');
             card.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    window.location.href = `blog-post.html?id=${post.id}`;
+                    window.location.href = postHref;
                 }
             });
 
@@ -1886,12 +1887,12 @@ class BlogSystem {
                         </div>
                     </div>
                     <h2 class="blog-card-title">
-                        <a href="blog-post.html?id=${post.id}">${post.title}</a>
+                        <a href="${postHref}">${post.title}</a>
                     </h2>
                     ${showExcerpts && post.excerpt ? `<p class="blog-card-excerpt">${post.excerpt}</p>` : ''}
                     <div class="blog-card-footer">
                         ${tagsHTML}
-                        <a href="blog-post.html?id=${post.id}" class="card-inline-action">Read note</a>
+                        <a href="${postHref}" class="card-inline-action">Read note</a>
                     </div>
                 </div>
             `;
@@ -1914,7 +1915,7 @@ class BlogSystem {
 
     async loadBlogPost() {
         const urlParams = new URLSearchParams(window.location.search);
-        const postId = urlParams.get('id');
+        const postId = (urlParams.get('id') || '').trim();
 
         if (!postId) {
             window.location.href = 'blog.html';
