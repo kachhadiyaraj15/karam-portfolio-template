@@ -49,6 +49,8 @@ const OUTPUT_DIR = 'api-static';
 const CONFIG_OUTPUT_DIR = path.join(OUTPUT_DIR, 'config');
 const FAVICON_PATH = path.join(ASSETS_DIR, 'favicon.svg');
 const ASSET_VERSION = String(Date.now());
+const SEO_MANAGED_MARKER_START = '<!-- SEO:START -->';
+const SEO_MANAGED_MARKER_END = '<!-- SEO:END -->';
 
 const SHELL_PAGES = [
     {
@@ -834,6 +836,177 @@ function replaceMetaDescription(html, value) {
     return html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${value}">`);
 }
 
+function stripHtml(value) {
+    return String(value || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function truncateText(value, maxLength = 155) {
+    const text = stripHtml(value);
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength - 1).trim()}…`;
+}
+
+function normalizeSiteUrl(config) {
+    const rawUrl = config.site_url
+        || config.siteUrl
+        || config.base_url
+        || process.env.SITE_URL
+        || process.env.URL
+        || process.env.CF_PAGES_URL
+        || '';
+    return String(rawUrl || '').trim().replace(/\/+$/, '');
+}
+
+function normalizePagePath(pagePath = 'index.html') {
+    const normalized = String(pagePath || 'index.html').replace(/^\/+/, '');
+    return normalized || 'index.html';
+}
+
+function absoluteUrl(config, pagePath = 'index.html') {
+    const siteUrl = normalizeSiteUrl(config);
+    const normalizedPath = normalizePagePath(pagePath);
+    if (!siteUrl) return normalizedPath;
+    return `${siteUrl}/${normalizedPath}`;
+}
+
+function absoluteAssetUrl(config, assetPath = '') {
+    if (!assetPath) return '';
+    if (/^https?:\/\//i.test(assetPath)) return assetPath;
+    return absoluteUrl(config, assetPath);
+}
+
+function buildJsonLdScript(schema) {
+    return `    <script type="application/ld+json">${JSON.stringify(schema).replace(/</g, '\\u003c')}</script>`;
+}
+
+function buildPersonSchema(config) {
+    const siteName = config.site_name || 'Portfolio';
+    const sameAs = [
+        config.social_github,
+        config.social_twitter,
+        config.social_linkedin,
+        config.social_youtube,
+        config.social_website
+    ].filter(Boolean);
+
+    return {
+        '@type': 'Person',
+        name: siteName,
+        url: absoluteUrl(config, 'index.html'),
+        description: config.site_tagline || config.site_description || '',
+        email: config.social_email ? `mailto:${config.social_email}` : undefined,
+        sameAs: sameAs.length ? sameAs : undefined
+    };
+}
+
+function removeUndefinedValues(value) {
+    if (Array.isArray(value)) {
+        return value.map(removeUndefinedValues).filter(item => item !== undefined);
+    }
+
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(
+            Object.entries(value)
+                .filter(([, item]) => item !== undefined && item !== '')
+                .map(([key, item]) => [key, removeUndefinedValues(item)])
+        );
+    }
+
+    return value;
+}
+
+function buildShellSchema(config, shell, title, description) {
+    const pageUrl = absoluteUrl(config, shell.file);
+    const person = buildPersonSchema(config);
+    const basePage = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: title,
+        description,
+        url: pageUrl,
+        isPartOf: {
+            '@type': 'WebSite',
+            name: config.site_name || 'Portfolio',
+            url: absoluteUrl(config, 'index.html')
+        },
+        about: person
+    };
+
+    if (shell.page === 'home') {
+        return [
+            {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: config.site_name || 'Portfolio',
+                url: absoluteUrl(config, 'index.html'),
+                description,
+                publisher: person
+            },
+            {
+                '@context': 'https://schema.org',
+                ...person
+            }
+        ].map(removeUndefinedValues);
+    }
+
+    if (shell.file === 'blog.html') {
+        return [removeUndefinedValues({ ...basePage, '@type': 'Blog' })];
+    }
+
+    if (shell.file === 'projects.html' || shell.file === 'playlists.html' || shell.file === 'experience.html') {
+        return [removeUndefinedValues({ ...basePage, '@type': 'CollectionPage' })];
+    }
+
+    if (shell.file === 'about.html') {
+        return [removeUndefinedValues({ ...basePage, '@type': 'AboutPage' })];
+    }
+
+    return [removeUndefinedValues(basePage)];
+}
+
+function buildSeoHeadTags(config, { title, description, pagePath, type = 'website', image = '', schema = [] }) {
+    const pageUrl = absoluteUrl(config, pagePath);
+    const imageUrl = absoluteAssetUrl(config, image || config.seo_image || config.site_image || '');
+    const tags = [
+        `    <link rel="canonical" href="${escapeHtml(pageUrl)}">`,
+        '    <meta name="robots" content="index, follow, max-image-preview:large">',
+        `    <meta property="og:type" content="${escapeHtml(type)}">`,
+        `    <meta property="og:site_name" content="${escapeHtml(config.site_name || 'Portfolio')}">`,
+        `    <meta property="og:title" content="${escapeHtml(title)}">`,
+        `    <meta property="og:description" content="${escapeHtml(description)}">`,
+        `    <meta property="og:url" content="${escapeHtml(pageUrl)}">`,
+        `    <meta property="og:locale" content="${escapeHtml(config.seo_locale || 'en_US')}">`,
+        `    <meta name="twitter:card" content="${imageUrl ? 'summary_large_image' : 'summary'}">`,
+        `    <meta name="twitter:title" content="${escapeHtml(title)}">`,
+        `    <meta name="twitter:description" content="${escapeHtml(description)}">`,
+        '    <meta name="theme-color" content="#fbf7ef">'
+    ];
+
+    if (imageUrl) {
+        tags.splice(7, 0, `    <meta property="og:image" content="${escapeHtml(imageUrl)}">`);
+        tags.splice(tags.length - 1, 0, `    <meta name="twitter:image" content="${escapeHtml(imageUrl)}">`);
+    }
+
+    if (Array.isArray(schema)) {
+        schema.forEach(item => tags.push(buildJsonLdScript(item)));
+    }
+
+    return `${SEO_MANAGED_MARKER_START}\n${tags.join('\n')}\n${SEO_MANAGED_MARKER_END}`;
+}
+
+function injectSeoHead(html, config, seoData) {
+    const cleanHtml = html.replace(
+        new RegExp(`\\s*${escapeRegExp(SEO_MANAGED_MARKER_START)}[\\s\\S]*?${escapeRegExp(SEO_MANAGED_MARKER_END)}\\s*`, 'g'),
+        '\n'
+    );
+    const block = buildSeoHeadTags(config, seoData);
+
+    return cleanHtml.replace(
+        /(<meta name="description" content="[^"]*">\r?\n?)/,
+        `$1${block}\n`
+    );
+}
+
 function injectFaviconLinks(html) {
     const faviconLinks = [
         '    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">',
@@ -895,8 +1068,17 @@ function renderHtmlShells(siteConfig) {
         }
 
         let html = readFileContent(filePath);
-        html = replaceTitle(html, shell.title(siteConfig));
-        html = replaceMetaDescription(html, shell.description(siteConfig));
+        const title = shell.title(siteConfig);
+        const description = truncateText(shell.description(siteConfig));
+        html = replaceTitle(html, escapeHtml(title));
+        html = replaceMetaDescription(html, escapeHtml(description));
+        html = injectSeoHead(html, siteConfig, {
+            title,
+            description,
+            pagePath: shell.file,
+            type: shell.file === 'blog-post.html' ? 'article' : 'website',
+            schema: buildShellSchema(siteConfig, shell, title, description)
+        });
         html = injectFaviconLinks(html);
         html = replaceTagContent(html, 'span', 'brand-mark', brandMark);
         html = replaceTagContent(html, 'span', 'brand-name', siteName);
@@ -1098,6 +1280,7 @@ function generatePlaylistFiles(blogPosts = [], renderer) {
     );
 
     console.log(`     ✓ Bundled ${playlists.length} playlists`);
+    return playlists;
 }
 
 /**
@@ -1148,6 +1331,7 @@ function generateProjectFiles(renderer) {
     );
 
     console.log(`     ✓ Bundled ${enrichedProjects.length} projects`);
+    return enrichedProjects;
 }
 
 /**
@@ -1271,6 +1455,7 @@ function generateExperienceFiles(renderer) {
     );
 
     console.log(`     ✓ Bundled ${enrichedExperience.length} roles`);
+    return enrichedExperience;
 }
 
 /**
@@ -1434,6 +1619,108 @@ function generateNotesIndex(notes, renderer) {
     console.log(`     ✓ Indexed ${renderedNotes.length} notes`);
 }
 
+function escapeXml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
+function formatSitemapDate(value) {
+    const date = value ? new Date(value) : new Date();
+    if (Number.isNaN(date.getTime())) {
+        return new Date().toISOString().slice(0, 10);
+    }
+    return date.toISOString().slice(0, 10);
+}
+
+function createSitemapEntry(config, pagePath, { priority = '0.7', changefreq = 'monthly', lastmod = '' } = {}) {
+    return [
+        '  <url>',
+        `    <loc>${escapeXml(absoluteUrl(config, pagePath))}</loc>`,
+        `    <lastmod>${escapeXml(formatSitemapDate(lastmod))}</lastmod>`,
+        `    <changefreq>${escapeXml(changefreq)}</changefreq>`,
+        `    <priority>${escapeXml(priority)}</priority>`,
+        '  </url>'
+    ].join('\n');
+}
+
+function generateSeoFiles(siteConfig, { blogPosts = [], playlists = [], projects = [], experience = [] } = {}) {
+    console.log('  🔎 SEO files...');
+
+    const entries = [];
+    const navigationPages = parseNavigationConfig(siteConfig.navigation)
+        .filter(item => isPageEnabled(siteConfig, item.page));
+
+    navigationPages.forEach(item => {
+        const isHome = item.url === 'index.html';
+        entries.push(createSitemapEntry(siteConfig, item.url, {
+            priority: isHome ? '1.0' : '0.8',
+            changefreq: item.page === 'blog' ? 'weekly' : 'monthly'
+        }));
+    });
+
+    blogPosts.forEach(post => {
+        entries.push(createSitemapEntry(siteConfig, `blog-post.html?id=${encodeURIComponent(post.id)}`, {
+            priority: '0.75',
+            changefreq: 'monthly',
+            lastmod: post.updated || post.date
+        }));
+    });
+
+    projects.forEach(project => {
+        entries.push(createSitemapEntry(siteConfig, `project-detail.html?id=${encodeURIComponent(project.id)}`, {
+            priority: project.featured ? '0.75' : '0.65',
+            changefreq: 'monthly',
+            lastmod: project.updated || project.date
+        }));
+    });
+
+    playlists.forEach(playlist => {
+        entries.push(createSitemapEntry(siteConfig, `playlist-detail.html?id=${encodeURIComponent(playlist.id)}`, {
+            priority: '0.65',
+            changefreq: 'monthly'
+        }));
+    });
+
+    experience.forEach(entry => {
+        entries.push(createSitemapEntry(siteConfig, `experience-detail.html?id=${encodeURIComponent(entry.id)}`, {
+            priority: '0.55',
+            changefreq: 'yearly',
+            lastmod: entry.updated || entry.endDate || entry.startDate || entry.date
+        }));
+    });
+
+    const sitemap = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        entries.join('\n'),
+        '</urlset>',
+        ''
+    ].join('\n');
+
+    fs.writeFileSync('sitemap.xml', sitemap);
+
+    const robotsLines = [
+        'User-agent: *',
+        'Allow: /',
+        '',
+        `Sitemap: ${absoluteUrl(siteConfig, 'sitemap.xml')}`,
+        ''
+    ];
+
+    fs.writeFileSync('robots.txt', robotsLines.join('\n'));
+
+    if (!normalizeSiteUrl(siteConfig)) {
+        console.warn('     ⚠️  Set site_url in config/site.md before production so canonical URLs and sitemap locations are absolute.');
+    }
+
+    console.log(`     ✓ Generated sitemap.xml with ${entries.length} URLs`);
+    console.log('     ✓ Generated robots.txt');
+}
+
 /**
  * Main execution
  */
@@ -1447,15 +1734,16 @@ function main() {
         const renderer = new BuildMarkdownRenderer({ imageVariables, notes });
 
         const blogPosts = generateBlogFiles(renderer);
-        generatePlaylistFiles(blogPosts, renderer);
-        generateProjectFiles(renderer);
-        generateExperienceFiles(renderer);
+        const playlists = generatePlaylistFiles(blogPosts, renderer);
+        const projects = generateProjectFiles(renderer);
+        const experience = generateExperienceFiles(renderer);
         generateHomeContent(renderer);
         generateAboutContent(renderer);
         generateNotesIndex(notes, renderer);
         generateConfigBootstrap(siteConfig, imageVariables);
         generateFavicon(siteConfig);
         renderHtmlShells(siteConfig);
+        generateSeoFiles(siteConfig, { blogPosts, playlists, projects, experience });
 
         console.log('\n✅ Build complete! Site ready for deployment.\n');
 

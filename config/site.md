@@ -5,6 +5,9 @@
 site_name: Karam
 site_tagline: Product-minded software engineer
 site_description: A markdown-driven portfolio for projects, blog posts, and background.
+site_url: 
+seo_image: assets/images/project1.jpg
+seo_locale: en_US
 
 enable_home: true
 enable_about: true

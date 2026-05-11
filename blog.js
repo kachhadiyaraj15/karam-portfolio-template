@@ -136,6 +136,206 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
+function stripHtmlTags(value) {
+    return String(value || '')
+        .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function truncateSeoText(value, maxLength = 155) {
+    const text = stripHtmlTags(value);
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength - 1).trim()}...`;
+}
+
+function getConfigValue(configManager, ...keys) {
+    for (const key of keys) {
+        const value = configManager?.getSiteConfig?.(key);
+        if (value !== undefined && value !== null && String(value).trim() !== '') {
+            return value;
+        }
+    }
+
+    return '';
+}
+
+function getRuntimeBaseUrl(configManager) {
+    const configuredUrl = String(getConfigValue(configManager, 'site_url', 'siteUrl', 'base_url')).trim();
+    if (configuredUrl) {
+        return configuredUrl.replace(/\/+$/, '');
+    }
+
+    return window.location.origin;
+}
+
+function buildRuntimeUrl(configManager, pagePath = '') {
+    const rawPath = String(pagePath || '').trim();
+    if (/^https?:\/\//i.test(rawPath)) {
+        return rawPath;
+    }
+
+    const baseUrl = `${getRuntimeBaseUrl(configManager)}/`;
+    const normalizedPath = rawPath.replace(/^\.?\//, '');
+    return new URL(normalizedPath || window.location.pathname.replace(/^\//, ''), baseUrl).href;
+}
+
+function getRuntimeImageUrl(configManager, imagePath = '') {
+    const configuredImage = imagePath || getConfigValue(configManager, 'seo_image', 'og_image', 'site_image');
+    if (!configuredImage) return '';
+
+    const replacedImage = configManager?.replaceVariables?.(configuredImage) || configuredImage;
+    return buildRuntimeUrl(configManager, replacedImage);
+}
+
+function setHeadElement(tagName, selector, attributes, textContent = null) {
+    let element = document.head.querySelector(selector);
+    if (!element) {
+        element = document.createElement(tagName);
+        document.head.appendChild(element);
+    }
+
+    Object.entries(attributes).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') {
+            element.removeAttribute(key);
+        } else {
+            element.setAttribute(key, String(value));
+        }
+    });
+
+    element.setAttribute('data-runtime-seo', 'true');
+
+    if (textContent !== null) {
+        element.textContent = textContent;
+    }
+
+    return element;
+}
+
+function cleanStructuredData(value) {
+    if (Array.isArray(value)) {
+        return value
+            .map(item => cleanStructuredData(item))
+            .filter(item => item !== undefined && !(Array.isArray(item) && item.length === 0));
+    }
+
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(
+            Object.entries(value)
+                .map(([key, item]) => [key, cleanStructuredData(item)])
+                .filter(([, item]) => item !== undefined && !(Array.isArray(item) && item.length === 0))
+        );
+    }
+
+    if (value === undefined || value === null || value === '') {
+        return undefined;
+    }
+
+    return value;
+}
+
+function buildRuntimePersonSchema(configManager) {
+    const sameAs = [
+        getConfigValue(configManager, 'social_github'),
+        getConfigValue(configManager, 'social_twitter'),
+        getConfigValue(configManager, 'social_linkedin'),
+        getConfigValue(configManager, 'social_youtube'),
+        getConfigValue(configManager, 'social_website')
+    ].filter(Boolean);
+
+    return cleanStructuredData({
+        '@type': 'Person',
+        name: configManager?.getSiteName?.() || 'Portfolio',
+        url: buildRuntimeUrl(configManager, 'about.html'),
+        email: getConfigValue(configManager, 'social_email')
+            ? `mailto:${getConfigValue(configManager, 'social_email')}`
+            : undefined,
+        sameAs
+    });
+}
+
+function updateRuntimeSeo({ configManager, title, description, pagePath, type = 'website', image = '', schema = [] }) {
+    const siteName = configManager?.getSiteName?.() || 'Portfolio';
+    const seoTitle = title || siteName;
+    const seoDescription = truncateSeoText(description || configManager?.getSiteDescription?.() || '');
+    const canonicalUrl = buildRuntimeUrl(configManager, pagePath);
+    const imageUrl = getRuntimeImageUrl(configManager, image);
+    const locale = getConfigValue(configManager, 'seo_locale') || 'en_US';
+
+    document.title = seoTitle;
+
+    setHeadElement('meta', 'meta[name="description"]', {
+        name: 'description',
+        content: seoDescription
+    });
+    setHeadElement('link', 'link[rel="canonical"]', {
+        rel: 'canonical',
+        href: canonicalUrl
+    });
+    setHeadElement('meta', 'meta[property="og:site_name"]', {
+        property: 'og:site_name',
+        content: siteName
+    });
+    setHeadElement('meta', 'meta[property="og:title"]', {
+        property: 'og:title',
+        content: seoTitle
+    });
+    setHeadElement('meta', 'meta[property="og:description"]', {
+        property: 'og:description',
+        content: seoDescription
+    });
+    setHeadElement('meta', 'meta[property="og:type"]', {
+        property: 'og:type',
+        content: type === 'article' ? 'article' : 'website'
+    });
+    setHeadElement('meta', 'meta[property="og:url"]', {
+        property: 'og:url',
+        content: canonicalUrl
+    });
+    setHeadElement('meta', 'meta[property="og:locale"]', {
+        property: 'og:locale',
+        content: locale
+    });
+    if (imageUrl) {
+        setHeadElement('meta', 'meta[property="og:image"]', {
+            property: 'og:image',
+            content: imageUrl
+        });
+        setHeadElement('meta', 'meta[name="twitter:image"]', {
+            name: 'twitter:image',
+            content: imageUrl
+        });
+    }
+    setHeadElement('meta', 'meta[name="twitter:card"]', {
+        name: 'twitter:card',
+        content: imageUrl ? 'summary_large_image' : 'summary'
+    });
+    setHeadElement('meta', 'meta[name="twitter:title"]', {
+        name: 'twitter:title',
+        content: seoTitle
+    });
+    setHeadElement('meta', 'meta[name="twitter:description"]', {
+        name: 'twitter:description',
+        content: seoDescription
+    });
+
+    document.head.querySelectorAll('script[data-runtime-seo-schema]').forEach(script => script.remove());
+    const schemas = (Array.isArray(schema) ? schema : [schema])
+        .map(item => cleanStructuredData(item))
+        .filter(Boolean);
+
+    schemas.forEach(item => {
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.setAttribute('data-runtime-seo-schema', 'true');
+        script.setAttribute('data-runtime-seo', 'true');
+        script.textContent = JSON.stringify(item).replace(/</g, '\\u003c');
+        document.head.appendChild(script);
+    });
+}
+
 function slugifyHeading(value) {
     return String(value || '')
         .trim()
@@ -1757,12 +1957,31 @@ class BlogSystem {
 
     updatePageMeta(post) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
-        document.title = `${post.title} | ${siteName}`;
+        const pagePath = `blog-post.html?id=${encodeURIComponent(post.id)}`;
+        const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
+        const author = buildRuntimePersonSchema(this.configManager);
 
-        const metaDescription = document.querySelector('meta[name="description"]');
-        if (metaDescription) {
-            metaDescription.content = post.excerpt;
-        }
+        updateRuntimeSeo({
+            configManager: this.configManager,
+            title: `${post.title} | ${siteName}`,
+            description: post.excerpt,
+            pagePath,
+            type: 'article',
+            schema: {
+                '@context': 'https://schema.org',
+                '@type': 'BlogPosting',
+                headline: post.title,
+                description: truncateSeoText(post.excerpt),
+                datePublished: post.date,
+                dateModified: post.updated || post.date,
+                author,
+                publisher: author,
+                mainEntityOfPage: canonicalUrl,
+                url: canonicalUrl,
+                articleSection: post.category,
+                keywords: Array.isArray(post.tags) ? post.tags.join(', ') : undefined
+            }
+        });
     }
 
     renderBlogPost(post, html) {
@@ -2087,12 +2306,34 @@ class PlaylistSystem {
 
     updatePageMeta(playlist) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
-        document.title = `${playlist.title} | ${siteName}`;
+        const pagePath = `playlist-detail.html?id=${encodeURIComponent(playlist.id)}`;
+        const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
+        const posts = Array.isArray(playlist.posts) ? playlist.posts : [];
 
-        const metaDescription = document.querySelector('meta[name="description"]');
-        if (metaDescription) {
-            metaDescription.content = playlist.description || 'Curated blog playlist.';
-        }
+        updateRuntimeSeo({
+            configManager: this.configManager,
+            title: `${playlist.title} | ${siteName}`,
+            description: playlist.description || 'Curated blog playlist.',
+            pagePath,
+            image: playlist.cover,
+            schema: {
+                '@context': 'https://schema.org',
+                '@type': 'CollectionPage',
+                name: playlist.title,
+                description: truncateSeoText(playlist.description || 'Curated blog playlist.'),
+                url: canonicalUrl,
+                mainEntity: {
+                    '@type': 'ItemList',
+                    numberOfItems: posts.length,
+                    itemListElement: posts.map((post, index) => ({
+                        '@type': 'ListItem',
+                        position: index + 1,
+                        name: post.title,
+                        url: post.id ? buildRuntimeUrl(this.configManager, `blog-post.html?id=${encodeURIComponent(post.id)}`) : undefined
+                    }))
+                }
+            }
+        });
     }
 
     renderPlaylistDetail(playlist, bodyHTML = '') {
@@ -2594,12 +2835,28 @@ class ProjectSystem {
 
     updatePageMeta(project) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
-        document.title = `${project.title} | ${siteName}`;
+        const pagePath = `project-detail.html?id=${encodeURIComponent(project.id)}`;
+        const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
 
-        const metaDescription = document.querySelector('meta[name="description"]');
-        if (metaDescription) {
-            metaDescription.content = project.description;
-        }
+        updateRuntimeSeo({
+            configManager: this.configManager,
+            title: `${project.title} | ${siteName}`,
+            description: project.description,
+            pagePath,
+            image: project.image,
+            schema: {
+                '@context': 'https://schema.org',
+                '@type': 'CreativeWork',
+                name: project.title,
+                description: truncateSeoText(project.description),
+                image: getRuntimeImageUrl(this.configManager, project.image),
+                url: canonicalUrl,
+                datePublished: project.date,
+                creator: buildRuntimePersonSchema(this.configManager),
+                keywords: Array.isArray(project.technologies) ? project.technologies.join(', ') : undefined,
+                sameAs: [project.githubUrl, project.liveUrl].filter(Boolean)
+            }
+        });
     }
 
     renderProjectDetail(project, html) {
@@ -2892,12 +3149,38 @@ class ExperienceSystem {
 
     updatePageMeta(entry) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
-        document.title = `${entry.company} | ${siteName}`;
+        const title = `${entry.role || 'Experience'} at ${entry.company || siteName}`;
+        const pagePath = `experience-detail.html?id=${encodeURIComponent(entry.id)}`;
+        const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
 
-        const metaDescription = document.querySelector('meta[name="description"]');
-        if (metaDescription) {
-            metaDescription.content = entry.description;
-        }
+        updateRuntimeSeo({
+            configManager: this.configManager,
+            title: `${title} | ${siteName}`,
+            description: entry.description,
+            pagePath,
+            schema: {
+                '@context': 'https://schema.org',
+                '@type': 'ProfilePage',
+                name: title,
+                description: truncateSeoText(entry.description),
+                url: canonicalUrl,
+                about: {
+                    '@type': 'Organization',
+                    name: entry.company,
+                    url: entry.website
+                },
+                mainEntity: {
+                    '@type': 'Person',
+                    name: siteName,
+                    jobTitle: entry.role,
+                    worksFor: {
+                        '@type': 'Organization',
+                        name: entry.company,
+                        url: entry.website
+                    }
+                }
+            }
+        });
     }
 
     renderExperienceDetail(entry, html) {
@@ -3081,6 +3364,7 @@ class HomeSystem {
             `
             : '';
         const heroRailHTML = [actionsHTML, socialPanelHTML].filter(Boolean).join('');
+        const mobileJumpHTML = this.renderMobileJumpLinks();
 
         container.innerHTML = `
             <div class="content-loaded">
@@ -3094,6 +3378,8 @@ class HomeSystem {
                 ${heroRailHTML ? `<div class="home-hero-rail">${heroRailHTML}</div>` : ''}
             </section>
 
+            ${mobileJumpHTML}
+
             <section class="home-content content-panel prose">
                 ${htmlContent}
             </section>
@@ -3101,6 +3387,39 @@ class HomeSystem {
         `;
 
         enhanceRichContent(container);
+    }
+
+    renderMobileJumpLinks() {
+        if (!this.configManager || !this.configManager.siteConfigLoaded) {
+            return '';
+        }
+
+        const navString = this.configManager.getSiteConfig('navigation');
+        if (!navString) {
+            return '';
+        }
+
+        const links = navString
+            .split(',')
+            .map(item => {
+                const [page, label, url] = item.split('|').map(value => value.trim());
+                return { page, label, url };
+            })
+            .filter(item => item.page && item.label && item.url)
+            .filter(item => item.page !== 'home' && this.configManager.isPageEnabled(item.page));
+
+        if (links.length === 0) {
+            return '';
+        }
+
+        return `
+            <nav class="home-mobile-jump" aria-label="Quick page links">
+                <p class="section-kicker">Explore</p>
+                <div class="home-mobile-jump-links">
+                    ${links.map(link => `<a href="${escapeHtml(link.url)}" class="home-mobile-jump-link">${escapeHtml(link.label)}</a>`).join('')}
+                </div>
+            </nav>
+        `;
     }
 
     renderError(container) {

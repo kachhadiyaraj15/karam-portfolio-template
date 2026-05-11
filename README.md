@@ -116,6 +116,9 @@ Example:
 site_name: Your Name
 site_tagline: Product-minded software engineer
 site_description: A short description of the site.
+site_url: https://your-domain.com
+seo_image: assets/images/project1.jpg
+seo_locale: en_US
 
 enable_home: true
 enable_about: true
@@ -131,6 +134,45 @@ feature_social_links: true
 ```
 
 After changing config, run:
+
+```bash
+npm run build
+```
+
+## SEO
+
+The build generates SEO tags for the HTML shells and detail pages:
+
+- page titles and meta descriptions
+- canonical URLs
+- Open Graph and Twitter preview tags
+- JSON-LD structured data for the site, person, blog, collections, and detail pages
+- `sitemap.xml`
+- `robots.txt`
+
+Set the production URL before publishing:
+
+```md
+site_url: https://your-domain.com
+```
+
+Without `site_url`, the local site still works, but generated sitemap and canonical URLs cannot point to your real production domain.
+On Cloudflare Pages, the build can fall back to `CF_PAGES_URL`; still set `site_url` when you connect a custom domain.
+
+Set the default social preview image:
+
+```md
+seo_image: assets/images/project1.jpg
+```
+
+For stronger search snippets, keep these fields specific:
+
+- `site_description` in `config/site.md`
+- `excerpt` in each blog post
+- `description` in each project, playlist, and experience entry
+- `tags` and `category` in blog posts
+
+After changing SEO config or content, run:
 
 ```bash
 npm run build
@@ -787,18 +829,27 @@ Recommended Cloudflare Pages settings:
 - Build Output Directory: `dist`
 - Deploy Command: leave blank
 
+For custom domains, add this environment variable or set the same value in `config/site.md`:
+
+```text
+SITE_URL=https://your-domain.com
+```
+
 Do not set the Cloudflare deploy command to `npx wrangler deploy` for a Pages project. If Wrangler deploys the repository root, it can try to upload `node_modules/` as public assets and fail on large internal binaries. This template includes `wrangler.jsonc` for direct Wrangler deploys, and it points assets at `./dist`.
 
 General deployment workflow:
 
 1. Edit markdown.
 2. Run `npm install` if dependencies are not installed yet.
-3. Run `npm run build` for normal generated content, or `npm run build:pages` when publishing from `dist`.
-4. Test locally with `npm run serve` or `npm run dev`.
-5. Push to your Git provider.
-6. Let the hosting provider deploy the static files.
+3. Set `site_url` in `config/site.md` to the final production URL.
+4. Run `npm run build` for normal generated content, or `npm run build:pages` when publishing from `dist`.
+5. Test locally with `npm run serve` or `npm run dev`.
+6. Push to your Git provider.
+7. Let the hosting provider deploy the static files.
 
 For hosts that do not run builds, commit the generated `api-static/` files and generated shell updates after `npm run build`. For hosts that run builds, the source markdown and `package-lock.json` are enough for the provider to regenerate the static output.
+
+After production is live, submit `https://your-domain.com/sitemap.xml` in Google Search Console or the search console for the engine you care about.
 
 ## Troubleshooting
 
