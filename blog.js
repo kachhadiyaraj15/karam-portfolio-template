@@ -4168,15 +4168,76 @@ class NavigationManager {
         }
     }
 
-    getCurrentPageName() {
-        const path = window.location.pathname.toLowerCase();
-        if (path.includes('playlists.html') || path.includes('playlist-detail.html')) return 'playlists';
-        if (path.includes('blog.html') || path.includes('blog-post.html')) return 'blog';
-        if (path.includes('projects.html') || path.includes('project-detail.html')) return 'projects';
-        if (path.includes('experience.html') || path.includes('experience-detail.html')) return 'experience';
-        if (path.includes('about.html')) return 'about';
-        if (path.includes('index.html') || path === '/' || path.endsWith('/')) return 'home';
+    static getRouteName(pathname = window.location.pathname) {
+        const normalizedPath = decodeURIComponent(pathname || '/')
+            .toLowerCase()
+            .replace(/\\/g, '/')
+            .replace(/\/{2,}/g, '/');
+
+        const segments = normalizedPath
+            .split('/')
+            .filter(Boolean);
+
+        const lastSegment = (segments[segments.length - 1] || '')
+            .replace(/\.html$/i, '');
+
+        if (!lastSegment || lastSegment === 'index') return 'home';
+
+        const directRoutes = new Set([
+            'about',
+            'blog',
+            'blog-post',
+            'experience',
+            'experience-detail',
+            'playlists',
+            'playlist-detail',
+            'projects',
+            'project-detail'
+        ]);
+
+        if (directRoutes.has(lastSegment)) {
+            return lastSegment;
+        }
+
+        // Fallback for hosts that rewrite clean URLs under nested paths.
+        if (segments.some(segment => segment.replace(/\.html$/i, '') === 'playlist-detail')) return 'playlist-detail';
+        if (segments.some(segment => segment.replace(/\.html$/i, '') === 'project-detail')) return 'project-detail';
+        if (segments.some(segment => segment.replace(/\.html$/i, '') === 'experience-detail')) return 'experience-detail';
+        if (segments.some(segment => segment.replace(/\.html$/i, '') === 'blog-post')) return 'blog-post';
+        if (segments.some(segment => segment.replace(/\.html$/i, '') === 'playlists')) return 'playlists';
+        if (segments.some(segment => segment.replace(/\.html$/i, '') === 'projects')) return 'projects';
+        if (segments.some(segment => segment.replace(/\.html$/i, '') === 'experience')) return 'experience';
+        if (segments.some(segment => segment.replace(/\.html$/i, '') === 'blog')) return 'blog';
+        if (segments.some(segment => segment.replace(/\.html$/i, '') === 'about')) return 'about';
+
         return null;
+    }
+
+    static getPageNameFromRoute(routeName) {
+        if (routeName === 'playlist-detail') return 'playlists';
+        if (routeName === 'project-detail') return 'projects';
+        if (routeName === 'experience-detail') return 'experience';
+        if (routeName === 'blog-post') return 'blog';
+        return routeName;
+    }
+
+    static getPageNameFromBody() {
+        const pageClass = Array.from(document.body?.classList || [])
+            .find(className => className.startsWith('page-'));
+
+        if (!pageClass) {
+            return null;
+        }
+
+        const pageName = pageClass.replace(/^page-/, '');
+        const knownPages = new Set(['home', 'about', 'blog', 'experience', 'playlists', 'projects']);
+
+        return knownPages.has(pageName) ? pageName : null;
+    }
+
+    getCurrentPageName() {
+        return NavigationManager.getPageNameFromRoute(NavigationManager.getRouteName()) ||
+            NavigationManager.getPageNameFromBody();
     }
 }
 
@@ -4337,25 +4398,27 @@ class App {
     }
 
     getBasePageTitle() {
-        const path = window.location.pathname.toLowerCase();
-        if (path.includes('blog-post') || path.includes('project-detail') || path.includes('playlist-detail')) {
+        const routeName = NavigationManager.getRouteName() || NavigationManager.getPageNameFromBody();
+        if (['blog-post', 'project-detail', 'playlist-detail', 'experience-detail'].includes(routeName)) {
             return null;
         }
-        if (path.includes('playlists')) return 'Playlists';
-        if (path.includes('blog')) return 'Blog';
-        if (path.includes('projects')) return 'Projects';
-        if (path.includes('experience')) return 'Experience';
-        if (path.includes('about')) return 'About';
-        return 'home';
+
+        const titles = {
+            home: 'home',
+            about: 'About',
+            blog: 'Blog',
+            experience: 'Experience',
+            playlists: 'Playlists',
+            projects: 'Projects'
+        };
+
+        return titles[routeName] || 'home';
     }
 
     initializeCurrentPage() {
-        const path = window.location.pathname.toLowerCase();
+        const routeName = NavigationManager.getRouteName() || NavigationManager.getPageNameFromBody();
 
-        // Helper to check if we are on a specific page
-        const isPage = (name) => path.includes(`/${name}.html`) || path.endsWith(`/${name}`) || path === `/${name}`;
-
-        if (isPage('blog')) {
+        if (routeName === 'blog') {
             if (this.configManager.isFeatureEnabled('blog_filters')) {
                 const filterPanel = new FilterPanel();
                 filterPanel.init();
@@ -4364,32 +4427,26 @@ class App {
                 if (filterToggle) filterToggle.style.display = 'none';
             }
             this.blogSystem.loadBlogList();
-        } else if (isPage('blog-post')) {
+        } else if (routeName === 'blog-post') {
             this.blogSystem.loadBlogPost();
-        } else if (isPage('playlists')) {
+        } else if (routeName === 'playlists') {
             this.playlistSystem.loadPlaylistList();
-        } else if (isPage('playlist-detail')) {
+        } else if (routeName === 'playlist-detail') {
             this.playlistSystem.loadPlaylistDetail();
-        } else if (isPage('experience')) {
+        } else if (routeName === 'experience') {
             this.experienceSystem.loadExperienceList();
-        } else if (isPage('experience-detail')) {
+        } else if (routeName === 'experience-detail') {
             this.experienceSystem.loadExperienceDetail();
-        } else if (isPage('projects')) {
+        } else if (routeName === 'projects') {
             this.projectSystem.loadProjectsList();
-        } else if (isPage('project-detail')) {
+        } else if (routeName === 'project-detail') {
             this.projectSystem.loadProjectDetail();
-        } else if (isPage('about')) {
+        } else if (routeName === 'about') {
             this.aboutSystem.loadAboutPage();
-        } else if (path.includes('index.html') || path.endsWith('/') || path === '') {
+        } else if (routeName === 'home') {
             this.homeSystem.loadHomePage();
         } else {
-            // Fallback: Check if the path contains the name anywhere as a last resort
-            if (path.includes('about')) this.aboutSystem.loadAboutPage();
-            else if (path.includes('experience')) this.experienceSystem.loadExperienceList();
-            else if (path.includes('project')) this.projectSystem.loadProjectsList();
-            else if (path.includes('playlist')) this.playlistSystem.loadPlaylistList();
-            else if (path.includes('blog')) this.blogSystem.loadBlogList();
-            else this.homeSystem.loadHomePage();
+            this.homeSystem.loadHomePage();
         }
     }
 }

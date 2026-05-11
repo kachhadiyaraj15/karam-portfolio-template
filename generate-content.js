@@ -44,8 +44,11 @@ const EXPERIENCE_DIR = 'experience';
 const HOME_DIR = 'home';
 const ABOUT_DIR = 'about';
 const CONFIG_DIR = 'config';
+const ASSETS_DIR = 'assets';
 const OUTPUT_DIR = 'api-static';
 const CONFIG_OUTPUT_DIR = path.join(OUTPUT_DIR, 'config');
+const FAVICON_PATH = path.join(ASSETS_DIR, 'favicon.svg');
+const ASSET_VERSION = String(Date.now());
 
 const SHELL_PAGES = [
     {
@@ -761,6 +764,32 @@ function getBrandMark(siteName = 'Portfolio') {
         .join('') || 'P';
 }
 
+function generateFavicon(siteConfig) {
+    console.log('  🔖 Favicon...');
+
+    if (!fs.existsSync(ASSETS_DIR)) {
+        fs.mkdirSync(ASSETS_DIR, { recursive: true });
+    }
+
+    const mark = getBrandMark(siteConfig.site_name || 'Portfolio').slice(0, 2);
+    const fontSize = mark.length > 1 ? 25 : 31;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <linearGradient id="mark-bg" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#0f6b68"/>
+            <stop offset="1" stop-color="#b55d2c"/>
+        </linearGradient>
+    </defs>
+    <rect width="64" height="64" rx="18" fill="#fbf7ef"/>
+    <rect x="5" y="5" width="54" height="54" rx="15" fill="url(#mark-bg)"/>
+    <text x="32" y="41" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="800" letter-spacing="1" fill="#fff">${escapeHtml(mark)}</text>
+</svg>
+`;
+
+    fs.writeFileSync(FAVICON_PATH, svg);
+    console.log(`     ✓ Generated ${FAVICON_PATH.replace(/\\/g, '/')}`);
+}
+
 function resolveFooterText(value, siteName) {
     const defaultText = `© ${new Date().getFullYear()} ${siteName}.`;
     return (value || defaultText).replace(/\{\{\s*year\s*\}\}/gi, String(new Date().getFullYear()));
@@ -805,6 +834,32 @@ function replaceMetaDescription(html, value) {
     return html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${value}">`);
 }
 
+function injectFaviconLinks(html) {
+    const faviconLinks = [
+        '    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">',
+        '    <link rel="shortcut icon" href="assets/favicon.svg">'
+    ].join('\n');
+
+    const withoutExistingLinks = html
+        .replace(/^\s*<link rel="(?:shortcut )?icon"[^>]*>\r?\n?/gmi, '')
+        .replace(/^\s*<link rel="apple-touch-icon"[^>]*>\r?\n?/gmi, '');
+
+    if (withoutExistingLinks.includes('href="assets/favicon.svg"')) {
+        return withoutExistingLinks;
+    }
+
+    return withoutExistingLinks.replace(
+        /(<meta name="description" content="[^"]*">\r?\n?)/,
+        `$1${faviconLinks}\n`
+    );
+}
+
+function applyShellAssetVersion(html) {
+    return html
+        .replace(/href="styles\.css(?:\?v=[^"]*)?"/g, `href="styles.css?v=${ASSET_VERSION}"`)
+        .replace(/src="blog\.js(?:\?v=[^"]*)?"/g, `src="blog.js?v=${ASSET_VERSION}"`);
+}
+
 function replaceNavigation(html, value) {
     return html.replace(/(<nav class="nav">)[\s\S]*?(<\/nav>)/, `$1\n                    ${value}\n                $2`);
 }
@@ -842,6 +897,7 @@ function renderHtmlShells(siteConfig) {
         let html = readFileContent(filePath);
         html = replaceTitle(html, shell.title(siteConfig));
         html = replaceMetaDescription(html, shell.description(siteConfig));
+        html = injectFaviconLinks(html);
         html = replaceTagContent(html, 'span', 'brand-mark', brandMark);
         html = replaceTagContent(html, 'span', 'brand-name', siteName);
         html = replaceTagContent(html, 'span', 'brand-tagline', siteTagline);
@@ -849,6 +905,7 @@ function renderHtmlShells(siteConfig) {
         html = replaceNavigation(html, buildNavigationHTML(siteConfig, shell.page));
         html = replaceThemeToggleDefault(html);
         html = removeBuildTimeMarkdownScripts(html);
+        html = applyShellAssetVersion(html);
         fs.writeFileSync(filePath, html);
     });
 
@@ -1397,6 +1454,7 @@ function main() {
         generateAboutContent(renderer);
         generateNotesIndex(notes, renderer);
         generateConfigBootstrap(siteConfig, imageVariables);
+        generateFavicon(siteConfig);
         renderHtmlShells(siteConfig);
 
         console.log('\n✅ Build complete! Site ready for deployment.\n');
