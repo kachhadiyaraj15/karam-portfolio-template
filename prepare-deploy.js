@@ -15,7 +15,6 @@ const files = [
     'experience-detail.html',
     'playlists.html',
     'playlist-detail.html',
-    '_redirects',
     '_headers',
     'styles.css',
     'blog.js'
