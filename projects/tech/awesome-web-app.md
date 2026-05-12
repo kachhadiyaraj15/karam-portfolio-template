@@ -6,7 +6,7 @@ technologies: [JavaScript, Node.js, HTML, CSS, Markdown]
 githubUrl:
 liveUrl:
 demoUrl:
-links: [Live Site|/, UI Stress Test|/blog-post/markdown-ui-stress-test/]
+links: [Live Site|/, UI Stress Test|/blog-post/markdown-ui-stress-test/, Cloudflare Pages|https://pages.cloudflare.com/, MDN Static Websites|https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Your_first_website]
 published: true
 featured: true
 date: 2026-03-01
@@ -45,4 +45,4 @@ Personal sites usually fail for one of two reasons: the content is hard to updat
 
 - [ ] Replace the starter copy with final personal information
 - [ ] Add real outbound links for projects and profiles
-- [ ] Add custom images or screenshots for each case study
+- [ ] Add custom images or screenshots for each project

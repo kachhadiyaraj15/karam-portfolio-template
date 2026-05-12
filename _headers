@@ -1,14 +1,17 @@
+/api-static/config/*
+  Cache-Control: no-store, max-age=0
+
 /api-static/*
-  Cache-Control: no-cache, must-revalidate
+  Cache-Control: no-cache, max-age=0, must-revalidate
 
 /blog.js
-  Cache-Control: no-cache, must-revalidate
+  Cache-Control: no-cache, max-age=0, must-revalidate
 
 /blog-post
-  Cache-Control: no-cache, must-revalidate
+  Cache-Control: no-cache, max-age=0, must-revalidate
 
 /blog-post/*
-  Cache-Control: no-cache, must-revalidate
+  Cache-Control: no-cache, max-age=0, must-revalidate
 
 /*.html
-  Cache-Control: no-cache, must-revalidate
+  Cache-Control: no-cache, max-age=0, must-revalidate

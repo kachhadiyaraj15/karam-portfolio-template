@@ -5,7 +5,7 @@
 site_name: Karam
 site_tagline: Product-minded software engineer
 site_description: A markdown-driven portfolio for projects, blog posts, and background.
-site_url: 
+site_url: https://karam-portfolio-template.pages.dev
 seo_image: assets/images/project1.jpg
 seo_locale: en_US
 
@@ -22,6 +22,10 @@ feature_theme_toggle: true
 feature_blog_filters: true
 feature_project_tags: true
 feature_social_links: true
+
+source_code_github_icon: true
+source_code_github_url: https://github.com/kachhadiyaraj15/karam-portfolio-template
+source_code_github_label: Source code
 
 social_github: https://github.com/karam-demo
 social_twitter: https://x.com/karam_demo

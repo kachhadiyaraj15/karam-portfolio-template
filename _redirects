@@ -1,6 +1,6 @@
 # Cloudflare Pages redirect rules
 # These allow extensionless URLs for navigation (e.g. /blog → blog.html)
-# Detail pages use ?id= query params so they do NOT need path-based rules
+# Detail pages are generated as static route aliases during npm run build:pages
 
 /blog           /blog.html          200
 /projects       /projects.html      200

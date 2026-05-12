@@ -127,6 +127,23 @@ function buildSocialLinks(data, wrapperClass, linkClass) {
     return `<div class="${wrapperClass}">${links.join('')}</div>`;
 }
 
+function getGithubIconPath() {
+    return SOCIAL_PLATFORMS.find(platform => platform.key === 'github')?.icon || '';
+}
+
+function getSourceCodeGithubSettings(configManager) {
+    const enabledValue = configManager?.getSiteConfig?.('source_code_github_icon');
+    const enabled = enabledValue !== false && String(enabledValue).toLowerCase() !== 'false';
+    const url = getConfigValue(configManager, 'source_code_github_url', 'sourceCodeGithubUrl');
+    const label = getConfigValue(configManager, 'source_code_github_label', 'sourceCodeGithubLabel') || 'Source code';
+
+    return {
+        enabled: enabled && Boolean(url),
+        url,
+        label
+    };
+}
+
 function escapeHtml(value) {
     return String(value)
         .replace(/&/g, '&amp;')
@@ -201,6 +218,20 @@ function getPathDetailId(routeName, pathname = window.location.pathname) {
 function getUrlDetailId(routeName, paramName = 'id') {
     const urlParams = new URLSearchParams(window.location.search);
     return (urlParams.get(paramName) || getPathDetailId(routeName) || '').trim();
+}
+
+function buildDetailPath(routeName, id, params = {}) {
+    const query = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            query.set(key, value);
+        }
+    });
+
+    const queryString = query.toString();
+    const path = `${routeName}/${encodeURIComponent(id)}/`;
+    return queryString ? `${path}?${queryString}` : path;
 }
 
 function getRuntimeImageUrl(configManager, imagePath = '') {
@@ -1645,40 +1676,11 @@ class BlogSystem {
     }
 
     getCategoryPalette(category) {
-        const source = (category || 'general').toLowerCase();
-        let hash = 0;
-        for (let i = 0; i < source.length; i++) {
-            hash = source.charCodeAt(i) + ((hash << 5) - hash);
-        }
-
-        const hue = Math.abs(hash) % 360;
-        const accentLight = `hsl(${hue} 58% 38%)`;
-        const backgroundLight = `hsl(${hue} 72% 96%)`;
-        const borderLight = `hsl(${hue} 38% 82%)`;
-        const accentDark = `hsl(${hue} 76% 74%)`;
-        const backgroundDark = `hsl(${hue} 42% 18% / 0.55)`;
-        const borderDark = `hsl(${hue} 58% 52% / 0.34)`;
-
-        return {
-            accentLight,
-            backgroundLight,
-            borderLight,
-            accentDark,
-            backgroundDark,
-            borderDark
-        };
+        return getSharedCategoryPalette(category);
     }
 
     getCategoryStyle(category) {
-        const palette = this.getCategoryPalette(category);
-        return [
-            `--category-accent-light:${palette.accentLight}`,
-            `--category-bg-light:${palette.backgroundLight}`,
-            `--category-border-light:${palette.borderLight}`,
-            `--category-accent-dark:${palette.accentDark}`,
-            `--category-bg-dark:${palette.backgroundDark}`,
-            `--category-border-dark:${palette.borderDark}`
-        ].join(';') + ';';
+        return getSharedCategoryStyle(category);
     }
 
     renderCategoryFilters() {
@@ -1878,7 +1880,7 @@ class BlogSystem {
             const showTags = this.configManager?.getSiteConfig('blog_show_tags') !== false;
             const card = document.createElement('article');
             card.className = 'blog-card';
-            const postHref = `blog-post.html?id=${encodeURIComponent(post.id)}`;
+            const postHref = buildDetailPath('blog-post', post.id);
             card.onclick = () => window.location.href = postHref;
             card.setAttribute('role', 'link');
             card.setAttribute('tabindex', '0');
@@ -1930,8 +1932,7 @@ class BlogSystem {
     }
 
     getCategoryBadge(category) {
-        const safeCategory = escapeHtml(category || 'general');
-        return `<span class="category-badge" style="${this.getCategoryStyle(category)}">${safeCategory}</span>`;
+        return renderSharedCategoryBadge(category);
     }
 
     async loadBlogPost() {
@@ -1979,7 +1980,7 @@ class BlogSystem {
 
     updatePageMeta(post) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
-        const pagePath = `blog-post.html?id=${encodeURIComponent(post.id)}`;
+        const pagePath = buildDetailPath('blog-post', post.id);
         const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
         const author = buildRuntimePersonSchema(this.configManager);
 
@@ -2055,7 +2056,7 @@ class BlogSystem {
         const currentIndex = playlist.posts.findIndex(post => post.id === currentPost.id);
         if (currentIndex === -1) return '';
 
-        const playlistUrl = `playlist-detail.html?id=${encodeURIComponent(playlist.id)}`;
+        const playlistUrl = buildDetailPath('playlist-detail', playlist.id);
         const count = playlist.posts.length;
 
         return `
@@ -2072,7 +2073,7 @@ class BlogSystem {
 
     renderBlogBackLink() {
         if (this.activePlaylist) {
-            const playlistUrl = `playlist-detail.html?id=${encodeURIComponent(this.activePlaylist.id)}`;
+            const playlistUrl = buildDetailPath('playlist-detail', this.activePlaylist.id);
             return `<a href="${playlistUrl}" class="back-link">← Back to ${escapeHtml(this.activePlaylist.title)}</a>`;
         }
 
@@ -2097,11 +2098,10 @@ class BlogSystem {
             ? (currentIndex > 0 ? sortedPosts[currentIndex - 1] : null)
             : (currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null);
         const hrefForPost = (post) => {
-            const postId = encodeURIComponent(post.id);
             if (usingPlaylist) {
-                return `blog-post.html?id=${postId}&playlist=${encodeURIComponent(playlist.id)}`;
+                return buildDetailPath('blog-post', post.id, { playlist: playlist.id });
             }
-            return `blog-post.html?id=${postId}`;
+            return buildDetailPath('blog-post', post.id);
         };
         const previousLabel = usingPlaylist ? 'Previous in playlist' : 'Older post';
         const nextLabel = usingPlaylist ? 'Next in playlist' : 'Newer post';
@@ -2249,7 +2249,7 @@ class PlaylistSystem {
 
     createPlaylistCard(playlist) {
         const card = document.createElement('article');
-        const url = `playlist-detail.html?id=${encodeURIComponent(playlist.id)}`;
+        const url = buildDetailPath('playlist-detail', playlist.id);
         card.className = 'playlist-card';
         card.setAttribute('role', 'link');
         card.setAttribute('tabindex', '0');
@@ -2304,8 +2304,7 @@ class PlaylistSystem {
         const container = document.getElementById('playlist-detail-container');
         if (!container) return;
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const playlistId = urlParams.get('id');
+        const playlistId = getUrlDetailId('playlist-detail');
         if (!playlistId) {
             window.location.href = 'playlists.html';
             return;
@@ -2328,7 +2327,7 @@ class PlaylistSystem {
 
     updatePageMeta(playlist) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
-        const pagePath = `playlist-detail.html?id=${encodeURIComponent(playlist.id)}`;
+        const pagePath = buildDetailPath('playlist-detail', playlist.id);
         const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
         const posts = Array.isArray(playlist.posts) ? playlist.posts : [];
 
@@ -2351,7 +2350,7 @@ class PlaylistSystem {
                         '@type': 'ListItem',
                         position: index + 1,
                         name: post.title,
-                        url: post.id ? buildRuntimeUrl(this.configManager, `blog-post.html?id=${encodeURIComponent(post.id)}`) : undefined
+                        url: post.id ? buildRuntimeUrl(this.configManager, buildDetailPath('blog-post', post.id)) : undefined
                     }))
                 }
             }
@@ -2453,7 +2452,7 @@ class PlaylistSystem {
     }
 
     createPostUrl(post, playlistId) {
-        return `blog-post.html?id=${encodeURIComponent(post.id)}&playlist=${encodeURIComponent(playlistId)}`;
+        return buildDetailPath('blog-post', post.id, { playlist: playlistId });
     }
 
     formatDate(dateString) {
@@ -2532,12 +2531,51 @@ function renderProjectLink(link, className) {
     return `<a href="${escapeHtml(link.url)}" class="${className}"${targetAttrs}>${escapeHtml(link.label)}</a>`;
 }
 
+function getSharedCategoryPalette(category) {
+    const source = (category || 'general').toLowerCase();
+    let hash = 0;
+    for (let i = 0; i < source.length; i++) {
+        hash = source.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const hue = Math.abs(hash) % 360;
+    return {
+        accentLight: `hsl(${hue} 58% 38%)`,
+        backgroundLight: `hsl(${hue} 72% 96%)`,
+        borderLight: `hsl(${hue} 38% 82%)`,
+        accentDark: `hsl(${hue} 76% 74%)`,
+        backgroundDark: `hsl(${hue} 42% 18% / 0.55)`,
+        borderDark: `hsl(${hue} 58% 52% / 0.34)`
+    };
+}
+
+function getSharedCategoryStyle(category) {
+    const palette = getSharedCategoryPalette(category);
+    return [
+        `--category-accent-light:${palette.accentLight}`,
+        `--category-bg-light:${palette.backgroundLight}`,
+        `--category-border-light:${palette.borderLight}`,
+        `--category-accent-dark:${palette.accentDark}`,
+        `--category-bg-dark:${palette.backgroundDark}`,
+        `--category-border-dark:${palette.borderDark}`
+    ].join(';') + ';';
+}
+
+function renderSharedCategoryBadge(category) {
+    const safeCategory = escapeHtml(category || 'general');
+    return `<span class="category-badge" style="${getSharedCategoryStyle(category)}">${safeCategory}</span>`;
+}
+
 class ProjectSystem {
     constructor(configManager = null) {
         this.projects = [];
         this.configManager = configManager;
         this.markdownParser = new MarkdownParser(configManager);
         this.apiEndpoint = '/api-static/project-files.json';
+        this.selectedCategories = new Set();
+        this.selectedTags = new Set();
+        this.allTags = new Map();
+        this.availableCategories = [];
     }
 
     /**
@@ -2564,7 +2602,31 @@ class ProjectSystem {
         this.projects = this.configManager?.getSiteConfig('projects_show_featured_only')
             ? projectsData.filter(project => project.featured)
             : projectsData;
+        this.rebuildProjectTaxonomy();
         return this.projects;
+    }
+
+    rebuildProjectTaxonomy() {
+        this.allTags.clear();
+        const categories = new Set();
+
+        this.projects = this.projects.map(project => {
+            const category = project.category || 'general';
+            categories.add(category);
+
+            if (Array.isArray(project.technologies)) {
+                project.technologies.forEach(tag => {
+                    if (!this.allTags.has(tag)) {
+                        this.allTags.set(tag, new Set());
+                    }
+                    this.allTags.get(tag).add(category);
+                });
+            }
+
+            return { ...project, category };
+        });
+
+        this.availableCategories = Array.from(categories).sort((a, b) => a.localeCompare(b));
     }
 
     parseFrontmatter(content, filename) {
@@ -2618,6 +2680,7 @@ class ProjectSystem {
             title: frontmatter.title || 'Untitled',
             description: frontmatter.description || '',
             image: imageValue,
+            category: frontmatter.category || 'general',
             technologies: frontmatter.technologies || [],
             githubUrl: frontmatter.githubUrl || '',
             liveUrl: frontmatter.liveUrl || '',
@@ -2644,11 +2707,15 @@ class ProjectSystem {
         }
 
         // Initialize filter state
+        this.selectedCategories = new Set();
         this.selectedTags = new Set();
 
         if (this.configManager?.isFeatureEnabled('project_tags')) {
             this.setupProjectFilterPanel();
+            this.renderProjectCategoryFilters();
+            this.setupProjectCategoryFilters();
             this.setupProjectTagFilters();
+            this.updateProjectTagFilters();
         } else {
             const toggleBtn = document.getElementById('project-filter-toggle-btn');
             const panel = document.getElementById('project-filter-panel');
@@ -2701,29 +2768,90 @@ class ProjectSystem {
         });
     }
 
-    setupProjectTagFilters() {
-        // Collect all unique tags from all projects
-        const allTags = new Set();
-        this.projects.forEach(project => {
-            if (project.technologies && Array.isArray(project.technologies)) {
-                project.technologies.forEach(tag => allTags.add(tag));
-            }
+    renderProjectCategoryFilters() {
+        const categoryFiltersContainer = document.getElementById('project-category-filters');
+        if (!categoryFiltersContainer) return;
+
+        if (this.availableCategories.length === 0) {
+            categoryFiltersContainer.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem;">No categories available</p>';
+            return;
+        }
+
+        categoryFiltersContainer.innerHTML = this.availableCategories.map(category => `
+            <label class="category-filter-label" style="${getSharedCategoryStyle(category)}">
+                <input type="checkbox" class="project-category-filter category-filter" data-category="${escapeHtml(category)}">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-label">${escapeHtml(category)}</span>
+            </label>
+        `).join('');
+    }
+
+    setupProjectCategoryFilters() {
+        document.querySelectorAll('.project-category-filter').forEach(checkbox => {
+            checkbox.addEventListener('change', (event) => {
+                const category = event.target.dataset.category;
+                if (event.target.checked) {
+                    this.selectedCategories.add(category);
+                } else {
+                    this.selectedCategories.delete(category);
+                }
+                this.updateProjectTagFilters();
+                this.renderFilteredProjects();
+            });
         });
+    }
+
+    setupProjectTagFilters() {
+        const clearTagsBtn = document.getElementById('clear-project-tags-btn');
+        if (clearTagsBtn) {
+            clearTagsBtn.addEventListener('click', () => {
+                this.selectedTags.clear();
+                document.querySelectorAll('#project-tag-filters .tag-filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.renderFilteredProjects();
+            });
+        }
+    }
+
+    updateProjectTagFilters() {
+        let tagsToShow = [];
+
+        if (this.selectedCategories.size === 0) {
+            tagsToShow = Array.from(this.allTags.keys());
+        } else {
+            this.allTags.forEach((categories, tag) => {
+                for (const selectedCategory of this.selectedCategories) {
+                    if (categories.has(selectedCategory)) {
+                        tagsToShow.push(tag);
+                        break;
+                    }
+                }
+            });
+        }
 
         const tagFiltersContainer = document.getElementById('project-tag-filters');
         if (!tagFiltersContainer) return;
 
-        // Sort tags alphabetically
-        const sortedTags = Array.from(allTags).sort();
+        tagsToShow = Array.from(new Set(tagsToShow)).sort();
+        const visibleTags = new Set(tagsToShow);
+        this.selectedTags.forEach(tag => {
+            if (!visibleTags.has(tag)) {
+                this.selectedTags.delete(tag);
+            }
+        });
 
-        // Create tag filter buttons
-        tagFiltersContainer.innerHTML = sortedTags.map(tag =>
-            `<button class="tag-filter-btn" data-tag="${tag}">${tag}</button>`
-        ).join('');
+        if (tagsToShow.length === 0) {
+            tagFiltersContainer.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem;">No technologies available</p>';
+            return;
+        }
 
-        // Add click listeners to tag buttons
-        const tagButtons = tagFiltersContainer.querySelectorAll('.tag-filter-btn');
-        tagButtons.forEach(button => {
+        tagFiltersContainer.innerHTML = tagsToShow.map(tag => {
+            const isActive = this.selectedTags.has(tag);
+            return `<button class="tag-filter-btn ${isActive ? 'active' : ''}" data-tag="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`;
+        }).join('');
+
+        tagFiltersContainer.querySelectorAll('.tag-filter-btn').forEach(button => {
             button.addEventListener('click', () => {
                 const tag = button.dataset.tag;
 
@@ -2738,20 +2866,17 @@ class ProjectSystem {
                 this.renderFilteredProjects();
             });
         });
-
-        // Clear tags button
-        const clearTagsBtn = document.getElementById('clear-project-tags-btn');
-        if (clearTagsBtn) {
-            clearTagsBtn.addEventListener('click', () => {
-                this.selectedTags.clear();
-                tagButtons.forEach(btn => btn.classList.remove('active'));
-                this.renderFilteredProjects();
-            });
-        }
     }
 
     getFilteredProjects() {
         let filtered = [...this.projects];
+
+        // Filter by category
+        if (this.selectedCategories.size > 0) {
+            filtered = filtered.filter(project =>
+                this.selectedCategories.has(project.category || 'general')
+            );
+        }
 
         // Filter by tags (technologies)
         if (this.selectedTags.size > 0) {
@@ -2775,7 +2900,7 @@ class ProjectSystem {
         if (!projectsContainer) return;
 
         const filteredProjects = this.getFilteredProjects();
-        const useFeaturedLayout = this.selectedTags.size === 0;
+        const useFeaturedLayout = this.selectedCategories.size === 0 && this.selectedTags.size === 0;
 
         // Update projects count
         const countElement = document.getElementById('projects-count');
@@ -2783,7 +2908,7 @@ class ProjectSystem {
             const totalCount = this.projects.length;
             const filteredCount = filteredProjects.length;
 
-            if (this.selectedTags.size > 0) {
+            if (this.selectedCategories.size > 0 || this.selectedTags.size > 0) {
                 countElement.textContent = `Showing ${filteredCount} of ${totalCount} projects`;
             } else {
                 countElement.textContent = `${totalCount} ${totalCount === 1 ? 'project' : 'projects'}`;
@@ -2827,9 +2952,7 @@ class ProjectSystem {
                 </div>
             `;
 
-            const linkItems = getProjectLinks(project).map(link => renderProjectLink(link, 'project-link'));
-            linkItems.push(`<a href="project-detail.html?id=${encodeURIComponent(project.id)}" class="project-link">View Details</a>`);
-            const linksHTML = `<div class="project-links">${linkItems.join('')}</div>`;
+            const detailUrl = buildDetailPath('project-detail', project.id);
 
             // Create technologies tags
             const showTechTags = this.configManager?.isFeatureEnabled('project_tags');
@@ -2840,20 +2963,24 @@ class ProjectSystem {
             const metaChip = project.featured
                 ? '<span class="page-chip">Featured project</span>'
                 : '<span class="page-chip subtle">Project</span>';
+            const categoryBadge = renderSharedCategoryBadge(project.category);
 
             card.innerHTML = `
                 ${visualHTML}
                 <div class="project-content">
                     <div class="project-card-meta">
                         ${metaChip}
+                        ${categoryBadge}
                         ${project.date ? `<span class="project-card-date">${this.formatDate(project.date)}</span>` : ''}
                     </div>
                     <h3 class="project-title">
-                        <a href="project-detail.html?id=${encodeURIComponent(project.id)}" class="project-title-link">${project.title}</a>
+                        <a href="${detailUrl}" class="project-title-link">${project.title}</a>
                     </h3>
                     <p class="project-description">${project.description || ''}</p>
-                    ${techHTML}
-                    ${linksHTML}
+                    <div class="project-card-footer">
+                        ${techHTML}
+                        <a href="${detailUrl}" class="card-inline-action">View details</a>
+                    </div>
                 </div>
             `;
 
@@ -2911,7 +3038,7 @@ class ProjectSystem {
 
     updatePageMeta(project) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
-        const pagePath = `project-detail.html?id=${encodeURIComponent(project.id)}`;
+        const pagePath = buildDetailPath('project-detail', project.id);
         const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
 
         updateRuntimeSeo({
@@ -2928,6 +3055,7 @@ class ProjectSystem {
                 image: getRuntimeImageUrl(this.configManager, project.image),
                 url: canonicalUrl,
                 datePublished: project.date,
+                genre: project.category || 'general',
                 creator: buildRuntimePersonSchema(this.configManager),
                 keywords: Array.isArray(project.technologies) ? project.technologies.join(', ') : undefined,
                 sameAs: getProjectLinks(project).map(link => link.url)
@@ -2940,7 +3068,12 @@ class ProjectSystem {
         if (!container) return;
 
         const linkItems = getProjectLinks(project).map(link => renderProjectLink(link, 'project-detail-link'));
-        const linksHTML = linkItems.length > 0 ? `<div class="project-detail-links">${linkItems.join('')}</div>` : '';
+        const linksHTML = linkItems.length > 0
+            ? `<div class="project-detail-links-section">
+                <h3>Links</h3>
+                <div class="project-detail-links">${linkItems.join('')}</div>
+            </div>`
+            : '';
 
         const showTechTags = this.configManager?.isFeatureEnabled('project_tags');
         const techHTML = showTechTags && project.technologies.length > 0
@@ -2958,6 +3091,7 @@ class ProjectSystem {
                 <header class="project-detail-header">
                     <div class="project-detail-meta">
                         <span class="page-chip">Project</span>
+                        ${renderSharedCategoryBadge(project.category)}
                         ${project.date ? `<span class="project-card-date">${this.formatDate(project.date)}</span>` : ''}
                     </div>
                     <div class="project-detail-hero">
@@ -3142,6 +3276,7 @@ class ExperienceSystem {
 
     createExperienceCard(entry) {
         const card = document.createElement('article');
+        const detailUrl = buildDetailPath('experience-detail', entry.id);
         const technologies = Array.isArray(entry.technologies) && entry.technologies.length > 0
             ? `<div class="experience-tags">${entry.technologies.map(tag => `<span class="tech-tag">${escapeHtml(tag)}</span>`).join('')}</div>`
             : '';
@@ -3152,22 +3287,21 @@ class ExperienceSystem {
                 ${this.formatDateRange(entry) ? `<span class="experience-date">${this.formatDateRange(entry)}</span>` : ''}
             </div>
             <h2 class="experience-company">
-                <a href="experience-detail.html?id=${entry.id}" class="experience-company-link">${escapeHtml(entry.company)}</a>
+                <a href="${detailUrl}" class="experience-company-link">${escapeHtml(entry.company)}</a>
             </h2>
             <p class="experience-role">${escapeHtml(entry.role)}</p>
             <p class="experience-description">${escapeHtml(entry.description || '')}</p>
             ${technologies}
             <div class="experience-card-footer">
                 ${entry.location ? `<span class="experience-location">${escapeHtml(entry.location)}</span>` : ''}
-                <a href="experience-detail.html?id=${entry.id}" class="card-inline-action">View details</a>
+                <a href="${detailUrl}" class="card-inline-action">View details</a>
             </div>
         `;
         return card;
     }
 
     async loadExperienceDetail() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const entryId = urlParams.get('id');
+        const entryId = getUrlDetailId('experience-detail');
         if (!entryId) {
             window.location.href = 'experience.html';
             return;
@@ -3206,7 +3340,7 @@ class ExperienceSystem {
     updatePageMeta(entry) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
         const title = `${entry.role || 'Experience'} at ${entry.company || siteName}`;
-        const pagePath = `experience-detail.html?id=${encodeURIComponent(entry.id)}`;
+        const pagePath = buildDetailPath('experience-detail', entry.id);
         const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
 
         updateRuntimeSeo({
@@ -3658,10 +3792,11 @@ class ConfigManager {
         this.siteApiEndpoint = '/api-static/config/site.json';
         this.notesApiEndpoint = '/api-static/notes.json';
         this.bootstrap = window.__PORTFOLIO_BOOTSTRAP__ || null;
+        this.buildVersion = this.bootstrap?.buildVersion || 'unversioned';
         this.storageKeys = {
-            site: 'portfolio-site-config',
-            images: 'portfolio-image-config',
-            notes: 'portfolio-notes-index'
+            site: `portfolio-site-config:${this.buildVersion}`,
+            images: `portfolio-image-config:${this.buildVersion}`,
+            notes: `portfolio-notes-index:${this.buildVersion}`
         };
     }
 
@@ -3713,7 +3848,7 @@ class ConfigManager {
         }
 
         try {
-            const response = await fetch(this.imageApiEndpoint);
+            const response = await fetch(this.imageApiEndpoint, { cache: 'no-store' });
             if (!response.ok) {
                 throw new Error('Failed to fetch image configuration');
             }
@@ -3755,7 +3890,7 @@ class ConfigManager {
         }
 
         try {
-            const response = await fetch(this.siteApiEndpoint);
+            const response = await fetch(this.siteApiEndpoint, { cache: 'no-store' });
             if (!response.ok) {
                 throw new Error('Failed to fetch site configuration');
             }
@@ -3806,7 +3941,7 @@ class ConfigManager {
         }
 
         try {
-            const response = await fetch(this.notesApiEndpoint);
+            const response = await fetch(this.notesApiEndpoint, { cache: 'no-store' });
             if (!response.ok) {
                 throw new Error('Failed to fetch notes index');
             }
@@ -4752,6 +4887,8 @@ class App {
             element.textContent = footerText;
         });
 
+        this.syncSourceCodeGithubLink();
+
         if (!this.configManager.isFeatureEnabled('theme_toggle')) {
             document.querySelectorAll('.theme-toggle').forEach(button => {
                 button.style.display = 'none';
@@ -4789,6 +4926,38 @@ class App {
         };
 
         return titles[routeName] || 'home';
+    }
+
+    syncSourceCodeGithubLink() {
+        const settings = getSourceCodeGithubSettings(this.configManager);
+        const controls = document.querySelector('.header-controls');
+        let link = document.querySelector('.source-code-link');
+
+        if (!settings.enabled) {
+            if (link) link.remove();
+            return;
+        }
+
+        if (!link && controls) {
+            const themeToggle = controls.querySelector('.theme-toggle');
+            link = document.createElement('a');
+            link.className = 'source-code-link';
+            controls.insertBefore(link, themeToggle || null);
+        }
+
+        if (!link) return;
+
+        const label = String(settings.label || 'Source code');
+        link.href = settings.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.title = label;
+        link.setAttribute('aria-label', label);
+        link.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="${getGithubIconPath()}"></path>
+            </svg>
+        `;
     }
 
     initializeCurrentPage() {

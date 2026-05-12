@@ -316,6 +316,7 @@ select {
 
 .brand-tagline {
     font-size: 0.82rem;
+    font-weight: 700;
     color: var(--text-tertiary);
     white-space: nowrap;
     overflow: hidden;
@@ -398,6 +399,32 @@ select {
     transform: translateY(-1px);
     border-color: var(--line-color);
     box-shadow: var(--shadow-sm);
+}
+
+.source-code-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--surface-strong);
+    color: var(--text-primary);
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.source-code-link:hover {
+    transform: translateY(-1px);
+    border-color: var(--line-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.source-code-link svg {
+    width: 18px;
+    height: 18px;
 }
 
 .theme-icon {
@@ -648,6 +675,7 @@ select {
 }
 
 .blog-card-footer,
+.project-card-footer,
 .playlist-card-footer {
     display: flex;
     align-items: end;
@@ -2581,6 +2609,18 @@ select {
     align-content: start;
 }
 
+.project-card-footer {
+    margin-top: auto;
+}
+
+.project-card-footer .project-tech {
+    flex: 1 1 auto;
+}
+
+.project-card-footer .card-inline-action {
+    flex: 0 0 auto;
+}
+
 .project-detail {
     display: grid;
     gap: 1.3rem;
@@ -2628,7 +2668,8 @@ select {
     max-width: 38rem;
 }
 
-.project-detail-tech h3 {
+.project-detail-tech h3,
+.project-detail-links-section h3 {
     margin-bottom: 0.7rem;
     font-size: 0.76rem;
     font-weight: 700;
@@ -3806,6 +3847,11 @@ select {
         min-width: 0;
     }
 
+    .source-code-link {
+        width: 100%;
+        min-height: 44px;
+    }
+
     .hero-header,
     .project-detail-hero {
         grid-template-columns: 1fr;
@@ -4123,6 +4169,7 @@ select {
     }
 
     .blog-card-footer,
+    .project-card-footer,
     .playlist-card-footer {
         flex-direction: column;
         align-items: start;

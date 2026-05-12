@@ -51,6 +51,23 @@ const FAVICON_PATH = path.join(ASSETS_DIR, 'favicon.svg');
 const ASSET_VERSION = String(Date.now());
 const SEO_MANAGED_MARKER_START = '<!-- SEO:START -->';
 const SEO_MANAGED_MARKER_END = '<!-- SEO:END -->';
+const GENERATED_ROUTE_DIRS = [
+    'blog-post',
+    'project-detail',
+    'playlist-detail',
+    'experience-detail'
+];
+const ROOT_ROUTE_SHELLS = [
+    ['about', 'about.html'],
+    ['blog', 'blog.html'],
+    ['blog-post', 'blog-post.html'],
+    ['projects', 'projects.html'],
+    ['project-detail', 'project-detail.html'],
+    ['experience', 'experience.html'],
+    ['experience-detail', 'experience-detail.html'],
+    ['playlists', 'playlists.html'],
+    ['playlist-detail', 'playlist-detail.html']
+];
 
 const SHELL_PAGES = [
     {
@@ -87,7 +104,7 @@ const SHELL_PAGES = [
         file: 'project-detail.html',
         page: 'projects',
         title: (config) => `Projects | ${config.site_name || 'Portfolio'}`,
-        description: () => 'Project detail and case study.'
+        description: () => 'Project detail and build notes.'
     },
     {
         file: 'blog.html',
@@ -115,8 +132,20 @@ const SHELL_PAGES = [
     }
 ];
 
-// Ensure output directory exists
-if (!fs.existsSync(OUTPUT_DIR)) {
+function removeGeneratedPath(relativePath) {
+    const target = path.resolve(relativePath);
+    const root = path.resolve(__dirname);
+
+    if (target !== root && !target.startsWith(root + path.sep)) {
+        throw new Error(`Refusing to remove path outside project: ${relativePath}`);
+    }
+
+    fs.rmSync(target, { recursive: true, force: true });
+}
+
+function cleanGeneratedOutputs() {
+    removeGeneratedPath(OUTPUT_DIR);
+    cleanupRootRouteAliases();
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
@@ -823,6 +852,39 @@ function buildNavigationHTML(config, currentPage) {
     }).join('\n                    ');
 }
 
+const GITHUB_ICON_PATH = 'M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z';
+
+function buildSourceCodeGithubHTML(config) {
+    const enabledValue = config.source_code_github_icon;
+    const enabled = enabledValue !== false && String(enabledValue).toLowerCase() !== 'false';
+    const url = String(config.source_code_github_url || '').trim();
+
+    if (!enabled || !url) {
+        return '';
+    }
+
+    const label = config.source_code_github_label || 'Source code';
+    return `<a href="${escapeHtml(url)}" class="source-code-link" target="_blank" rel="noopener noreferrer" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="${GITHUB_ICON_PATH}"></path>
+                    </svg>
+                </a>`;
+}
+
+function replaceSourceCodeGithubLink(html, config) {
+    const withoutExistingLink = html.replace(/\s*<a href="[^"]*" class="source-code-link"[\s\S]*?<\/a>\r?\n?/g, '');
+    const linkHtml = buildSourceCodeGithubHTML(config);
+
+    if (!linkHtml) {
+        return withoutExistingLink;
+    }
+
+    return withoutExistingLink.replace(
+        /(\s*<button id="theme-toggle")/,
+        `\n                ${linkHtml}$1`
+    );
+}
+
 function replaceTagContent(html, tag, className, value) {
     const pattern = new RegExp(`(<${tag} class="${className}">)([\\s\\S]*?)(</${tag}>)`);
     return html.replace(pattern, `$1${value}$3`);
@@ -1030,7 +1092,13 @@ function injectFaviconLinks(html) {
 function applyShellAssetVersion(html) {
     return html
         .replace(/href="styles\.css(?:\?v=[^"]*)?"/g, `href="styles.css?v=${ASSET_VERSION}"`)
+        .replace(/src="api-static\/config\/bootstrap\.js(?:\?v=[^"]*)?"/g, `src="api-static/config/bootstrap.js?v=${ASSET_VERSION}"`)
         .replace(/src="blog\.js(?:\?v=[^"]*)?"/g, `src="blog.js?v=${ASSET_VERSION}"`);
+}
+
+function addBaseHref(html) {
+    const withoutExistingBase = html.replace(/^\s*<base\s+href="[^"]*">\r?\n?/gmi, '');
+    return withoutExistingBase.replace(/(<head>\r?\n?)/i, '$1    <base href="/">\n');
 }
 
 function replaceNavigation(html, value) {
@@ -1085,6 +1153,7 @@ function renderHtmlShells(siteConfig) {
         html = replaceTagContent(html, 'span', 'brand-tagline', siteTagline);
         html = replaceTagContent(html, 'p', 'footer-text', footerText);
         html = replaceNavigation(html, buildNavigationHTML(siteConfig, shell.page));
+        html = replaceSourceCodeGithubLink(html, siteConfig);
         html = replaceThemeToggleDefault(html);
         html = removeBuildTimeMarkdownScripts(html);
         html = applyShellAssetVersion(html);
@@ -1094,11 +1163,84 @@ function renderHtmlShells(siteConfig) {
     console.log(`     ✓ Updated ${SHELL_PAGES.length} shell files`);
 }
 
+function cleanupRootRouteAliases() {
+    ROOT_ROUTE_SHELLS
+        .map(([routePath]) => path.join(...routePath.split('/').filter(Boolean), 'index.html'))
+        .forEach(aliasPath => {
+            if (fs.existsSync(aliasPath)) {
+                fs.rmSync(aliasPath, { force: true });
+            }
+        });
+
+    GENERATED_ROUTE_DIRS.forEach(routeDir => {
+        if (fs.existsSync(routeDir)) {
+            fs.rmSync(routeDir, { recursive: true, force: true });
+        }
+    });
+}
+
+function writeRootRouteAlias(routePath, shellFile) {
+    const segments = String(routePath || '')
+        .split(/[\\/]+/)
+        .filter(Boolean);
+
+    if (segments.length === 0 || segments.some(segment => segment === '..' || path.isAbsolute(segment))) {
+        throw new Error(`Invalid route alias: ${routePath}`);
+    }
+
+    if (!fs.existsSync(shellFile)) {
+        return false;
+    }
+
+    const target = path.join(...segments, 'index.html');
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, addBaseHref(readFileContent(shellFile)));
+    return true;
+}
+
+function generateRootRouteAliases({ blogPosts = [], playlists = [], projects = [], experience = [] } = {}) {
+    console.log('  🧭 Root route aliases...');
+
+    cleanupRootRouteAliases();
+
+    let aliasCount = 0;
+    ROOT_ROUTE_SHELLS.forEach(([routePath, shellFile]) => {
+        if (writeRootRouteAlias(routePath, shellFile)) aliasCount += 1;
+    });
+
+    blogPosts
+        .filter(post => post?.id)
+        .forEach(post => {
+            if (writeRootRouteAlias(`blog-post/${post.id}`, 'blog-post.html')) aliasCount += 1;
+        });
+
+    projects
+        .filter(project => project?.id)
+        .forEach(project => {
+            if (writeRootRouteAlias(`project-detail/${project.id}`, 'project-detail.html')) aliasCount += 1;
+        });
+
+    playlists
+        .filter(playlist => playlist?.id)
+        .forEach(playlist => {
+            if (writeRootRouteAlias(`playlist-detail/${playlist.id}`, 'playlist-detail.html')) aliasCount += 1;
+        });
+
+    experience
+        .filter(entry => entry?.id)
+        .forEach(entry => {
+            if (writeRootRouteAlias(`experience-detail/${entry.id}`, 'experience-detail.html')) aliasCount += 1;
+        });
+
+    console.log(`     ✓ Generated ${aliasCount} root route aliases`);
+}
+
 function generateConfigBootstrap(siteConfig, imageVariables) {
     console.log('  ⚡ Config bootstrap...');
 
     ensureConfigOutputDir();
     const bootstrap = {
+        buildVersion: ASSET_VERSION,
         siteConfig,
         imageVariables
     };
@@ -1211,7 +1353,7 @@ function createPlaylistSummary(post) {
         excerpt: post.excerpt || '',
         tags: Array.isArray(post.tags) ? post.tags : [],
         category: post.category || 'general',
-        url: `blog-post.html?id=${post.id}`
+        url: `blog-post/${post.id}/`
     };
 }
 
@@ -1292,26 +1434,30 @@ function generateProjectFiles(renderer) {
     const enrichedProjects = [];
 
     if (fs.existsSync(PROJECTS_DIR)) {
-        const items = fs.readdirSync(PROJECTS_DIR);
-        for (const item of items) {
-            if (item.endsWith('.md') && !item.startsWith('_')) {
-                const filePath = path.join(PROJECTS_DIR, item);
-                const content = readFileContent(filePath);
-                const metadata = parseFrontmatter(content);
-                const markdownContent = stripFrontmatter(content);
+        const projectFiles = getMarkdownFiles(PROJECTS_DIR);
+        for (const fileInfo of projectFiles) {
+            const filePath = path.join(PROJECTS_DIR, fileInfo.file);
+            const content = readFileContent(filePath);
+            const metadata = parseFrontmatter(content);
+            const markdownContent = stripFrontmatter(content);
 
-                if (metadata.published !== false) {
-                    // Extract id from filename
-                    const id = item.replace('.md', '');
+            if (metadata.published !== false) {
+                const filenameParts = fileInfo.file.split('/');
+                const id = filenameParts[filenameParts.length - 1].replace('.md', '');
 
-                    enrichedProjects.push({
-                        id,
-                        file: item,
-                        ...metadata,
-                        content: markdownContent,
-                        html: renderer.render(markdownContent)
-                    });
-                }
+                const category = fileInfo.category !== 'general'
+                    ? fileInfo.category
+                    : (metadata.category || 'general');
+
+                enrichedProjects.push({
+                    ...fileInfo,
+                    id,
+                    file: fileInfo.file,
+                    ...metadata,
+                    category,
+                    content: markdownContent,
+                    html: renderer.render(markdownContent)
+                });
             }
         }
     }
@@ -1503,7 +1649,7 @@ function collectNotesIndex() {
             title: metadata.title || id,
             kind: 'blog',
             sourcePath: `blog/${fileInfo.file}`,
-            url: `blog-post.html?id=${id}`,
+            url: `blog-post/${id}/`,
             content: stripFrontmatter(content),
             aliases: [fileInfo.file.replace('.md', '')],
             category: fileInfo.category,
@@ -1514,23 +1660,27 @@ function collectNotesIndex() {
 
     // Project notes
     if (fs.existsSync(PROJECTS_DIR)) {
-        const items = fs.readdirSync(PROJECTS_DIR);
-        for (const item of items) {
-            if (!item.endsWith('.md') || item.startsWith('_')) continue;
-            const filePath = path.join(PROJECTS_DIR, item);
+        const projectFiles = getMarkdownFiles(PROJECTS_DIR);
+        for (const fileInfo of projectFiles) {
+            const filePath = path.join(PROJECTS_DIR, fileInfo.file);
             const content = readFileContent(filePath);
             const metadata = parseFrontmatter(content);
             if (metadata.published === false) continue;
 
-            const id = item.replace('.md', '');
+            const filenameParts = fileInfo.file.split('/');
+            const id = filenameParts[filenameParts.length - 1].replace('.md', '');
+            const category = fileInfo.category !== 'general'
+                ? fileInfo.category
+                : (metadata.category || 'general');
             notes.push(createNoteRecord({
                 id,
                 title: metadata.title || id,
                 kind: 'project',
-                sourcePath: `projects/${item}`,
+                sourcePath: `projects/${fileInfo.file}`,
                 url: `project-detail/${id}/`,
                 content: stripFrontmatter(content),
-                aliases: [item.replace('.md', '')],
+                aliases: Array.from(new Set([fileInfo.file.replace('.md', ''), id])),
+                category,
                 tags: Array.isArray(metadata.technologies) ? metadata.technologies : [],
                 date: metadata.date || ''
             }));
@@ -1551,7 +1701,7 @@ function collectNotesIndex() {
             title: metadata.company || metadata.role || id,
             kind: 'experience',
             sourcePath: `experience/${fileInfo.file}`,
-            url: `experience-detail.html?id=${id}`,
+            url: `experience-detail/${id}/`,
             content: stripFrontmatter(content),
             aliases: [fileInfo.file.replace('.md', ''), metadata.company, metadata.role].filter(Boolean),
             category: metadata.employmentType || fileInfo.category,
@@ -1663,7 +1813,7 @@ function generateSeoFiles(siteConfig, { blogPosts = [], playlists = [], projects
     });
 
     blogPosts.forEach(post => {
-        entries.push(createSitemapEntry(siteConfig, `blog-post.html?id=${encodeURIComponent(post.id)}`, {
+        entries.push(createSitemapEntry(siteConfig, `blog-post/${encodeURIComponent(post.id)}/`, {
             priority: '0.75',
             changefreq: 'monthly',
             lastmod: post.updated || post.date
@@ -1679,14 +1829,14 @@ function generateSeoFiles(siteConfig, { blogPosts = [], playlists = [], projects
     });
 
     playlists.forEach(playlist => {
-        entries.push(createSitemapEntry(siteConfig, `playlist-detail.html?id=${encodeURIComponent(playlist.id)}`, {
+        entries.push(createSitemapEntry(siteConfig, `playlist-detail/${encodeURIComponent(playlist.id)}/`, {
             priority: '0.65',
             changefreq: 'monthly'
         }));
     });
 
     experience.forEach(entry => {
-        entries.push(createSitemapEntry(siteConfig, `experience-detail.html?id=${encodeURIComponent(entry.id)}`, {
+        entries.push(createSitemapEntry(siteConfig, `experience-detail/${encodeURIComponent(entry.id)}/`, {
             priority: '0.55',
             changefreq: 'yearly',
             lastmod: entry.updated || entry.endDate || entry.startDate || entry.date
@@ -1728,6 +1878,8 @@ function main() {
     console.log('🔨 Building static content...\n');
 
     try {
+        cleanGeneratedOutputs();
+
         const imageVariables = generateImageConfig();
         const siteConfig = generateSiteConfig();
         const notes = collectNotesIndex();
@@ -1744,6 +1896,7 @@ function main() {
         generateFavicon(siteConfig);
         renderHtmlShells(siteConfig);
         generateSeoFiles(siteConfig, { blogPosts, playlists, projects, experience });
+        generateRootRouteAliases({ blogPosts, playlists, projects, experience });
 
         console.log('\n✅ Build complete! Site ready for deployment.\n');
 

@@ -6,7 +6,7 @@ technologies: [Python, FastAPI, JavaScript, Docker, PostgreSQL]
 githubUrl:
 liveUrl:
 demoUrl:
-links: [API Design Notes|/blog-post/building-scalable-apis/, Productivity Notes|/blog-post/remote-work-productivity/]
+links: [API Design Notes|/blog-post/building-scalable-apis/, Productivity Notes|/blog-post/remote-work-productivity/, FastAPI Docs|https://fastapi.tiangolo.com/, Docker Docs|https://docs.docker.com/]
 published: true
 featured: false
 date: 2025-08-09

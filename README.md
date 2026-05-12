@@ -2,6 +2,10 @@
 
 A static portfolio, blog, projects, experience, and playlist site powered by markdown files.
 
+Live site: https://karam-portfolio-template.pages.dev/
+
+Source repository: https://github.com/kachhadiyaraj15/karam-portfolio-template
+
 The main idea is simple: edit markdown source files, run the build command, and the site generates static JSON and HTML-ready data for the frontend.
 
 ## Quick start
@@ -60,7 +64,8 @@ Edit these files and folders:
 - `config/images.md`: reusable image variables
 - `home/home.md`: homepage content and homepage social links
 - `about/about.md`: about page content and about page social links
-- `projects/*.md`: project cards and project detail pages
+- `projects/tech/*.md`: technical project cards and project detail pages
+- `projects/non-tech/*.md`: non-technical project cards and project detail pages
 - `blog/tech/*.md`: technical blog posts
 - `blog/non-tech/*.md`: non-technical blog posts
 - `experience/**/*.md`: experience entries
@@ -101,7 +106,7 @@ Common changes:
 - Site name, footer, feature toggles: `config/site.md`
 - Social links: `home/home.md` and `about/about.md`
 - Project image variables: `config/images.md`
-- New project: add a markdown file in `projects/`
+- New project: add a markdown file in `projects/tech/` or `projects/non-tech/`
 - New blog post: add a markdown file in `blog/tech/` or `blog/non-tech/`
 - New experience: add a markdown file in `experience/Full Time/`, `experience/Internship/`, or another experience folder
 - New playlist: add a markdown file in `playlists/`
@@ -116,7 +121,7 @@ Example:
 site_name: Your Name
 site_tagline: Product-minded software engineer
 site_description: A short description of the site.
-site_url: https://your-domain.com
+site_url: https://karam-portfolio-template.pages.dev
 seo_image: assets/images/project1.jpg
 seo_locale: en_US
 
@@ -131,6 +136,10 @@ feature_theme_toggle: true
 feature_blog_filters: true
 feature_project_tags: true
 feature_social_links: true
+
+source_code_github_icon: true
+source_code_github_url: https://github.com/your-user/your-repo
+source_code_github_label: Source code
 ```
 
 After changing config, run:
@@ -153,7 +162,7 @@ The build generates SEO tags for the HTML shells and detail pages:
 Set the production URL before publishing:
 
 ```md
-site_url: https://your-domain.com
+site_url: https://karam-portfolio-template.pages.dev
 ```
 
 Without `site_url`, the local site still works, but generated sitemap and canonical URLs cannot point to your real production domain.
@@ -193,6 +202,30 @@ page_key|Visible Label|target-file.html
 ```
 
 If a page is disabled with `enable_*: false`, it is hidden from navigation even if it remains in the `navigation` list.
+
+## Source Code GitHub Icon
+
+The header can show an icon-only GitHub link for the source repository. This is separate from `social_github`, so changing it does not affect homepage or about page social links.
+
+Configure it in `config/site.md`:
+
+```md
+source_code_github_icon: true
+source_code_github_url: https://github.com/kachhadiyaraj15/karam-portfolio-template
+source_code_github_label: Source code
+```
+
+Set the toggle to `false` to hide the icon:
+
+```md
+source_code_github_icon: false
+```
+
+Rebuild after changing it:
+
+```bash
+npm run build
+```
 
 ## Turning Playlists On Or Off
 
@@ -359,7 +392,8 @@ feature_social_links: false
 Project files live in:
 
 ```text
-projects/
+projects/tech/
+projects/non-tech/
 ```
 
 Create one markdown file per project.
@@ -790,7 +824,7 @@ Before publishing, check these files:
 - `home/home.md`
 - `about/about.md`
 - `experience/**/*.md`
-- `projects/*.md`
+- `projects/**/*.md`
 - `blog/**/*.md`
 
 Look for:
@@ -843,7 +877,7 @@ General deployment workflow:
 
 1. Edit markdown.
 2. Run `npm install` if dependencies are not installed yet.
-3. Set `site_url` in `config/site.md` to the final production URL.
+3. Set `site_url` in `config/site.md` to the final production URL. This project currently uses `https://karam-portfolio-template.pages.dev`.
 4. Run `npm run build` for normal generated content, or `npm run build:pages` when publishing from `dist`.
 5. Test locally with `npm run serve` or `npm run dev`.
 6. Push to your Git provider.
@@ -851,7 +885,7 @@ General deployment workflow:
 
 For hosts that do not run builds, commit the generated `api-static/` files and generated shell updates after `npm run build`. For hosts that run builds, the source markdown and `package-lock.json` are enough for the provider to regenerate the static output.
 
-After production is live, submit `https://your-domain.com/sitemap.xml` in Google Search Console or the search console for the engine you care about.
+After production is live, submit `https://karam-portfolio-template.pages.dev/sitemap.xml` in Google Search Console or the search console for the engine you care about.
 
 ## Troubleshooting
 
