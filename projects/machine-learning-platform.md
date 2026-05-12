@@ -6,6 +6,7 @@ technologies: [TypeScript, React, Python, PostgreSQL, Charting]
 githubUrl:
 liveUrl:
 demoUrl:
+links: [API Design Notes|/blog-post/building-scalable-apis/, Async JavaScript|/blog-post/understanding-async-javascript/]
 published: true
 featured: true
 date: 2025-11-18

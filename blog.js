@@ -1597,7 +1597,7 @@ class BlogSystem {
 
             // Parse arrays [item1, item2]
             if (value.startsWith('[') && value.endsWith(']')) {
-                value = value.slice(1, -1).split(',').map(item => item.trim());
+                value = value.slice(1, -1).split(',').map(item => item.trim()).filter(Boolean);
             }
             // Parse booleans
             else if (value === 'true') value = true;
@@ -2467,6 +2467,71 @@ class PlaylistSystem {
 // Project System Module
 // ===========================
 
+function isSafeProjectLinkUrl(url) {
+    const value = String(url || '').trim();
+    return value && !/^(javascript|data|vbscript):/i.test(value);
+}
+
+function isExternalProjectLinkUrl(url) {
+    return /^(https?:)?\/\//i.test(url) || /^(mailto|tel):/i.test(url);
+}
+
+function parseProjectLinkEntries(source, fallbackLabel = 'Link') {
+    if (!source) return [];
+
+    const items = Array.isArray(source)
+        ? source
+        : String(source).split(',').map(item => item.trim()).filter(Boolean);
+
+    return items.map(item => {
+        if (item && typeof item === 'object') {
+            const url = item.url || item.href || item.link || '';
+            const label = item.label || item.title || item.name || fallbackLabel;
+            return { label, url };
+        }
+
+        const parts = String(item).split('|').map(part => part.trim());
+        if (parts.length >= 2) {
+            return { label: parts[0] || fallbackLabel, url: parts.slice(1).join('|') };
+        }
+
+        return { label: fallbackLabel, url: parts[0] || '' };
+    });
+}
+
+function getProjectLinks(project) {
+    const fixedLinks = [
+        { label: 'GitHub', url: project.githubUrl },
+        { label: 'Live Demo', url: project.liveUrl },
+        { label: 'Demo', url: project.demoUrl }
+    ];
+
+    const customLinks = [
+        project.links,
+        project.projectLinks,
+        project.externalLinks
+    ].flatMap(source => parseProjectLinkEntries(source));
+
+    const seen = new Set();
+    return [...fixedLinks, ...customLinks]
+        .map(link => ({
+            label: String(link.label || 'Link').trim(),
+            url: String(link.url || '').trim()
+        }))
+        .filter(link => {
+            if (!isSafeProjectLinkUrl(link.url)) return false;
+            const key = link.url.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+}
+
+function renderProjectLink(link, className) {
+    const targetAttrs = isExternalProjectLinkUrl(link.url) ? ' target="_blank" rel="noopener noreferrer"' : '';
+    return `<a href="${escapeHtml(link.url)}" class="${className}"${targetAttrs}>${escapeHtml(link.label)}</a>`;
+}
+
 class ProjectSystem {
     constructor(configManager = null) {
         this.projects = [];
@@ -2557,6 +2622,7 @@ class ProjectSystem {
             githubUrl: frontmatter.githubUrl || '',
             liveUrl: frontmatter.liveUrl || '',
             demoUrl: frontmatter.demoUrl || '',
+            links: frontmatter.links || frontmatter.projectLinks || frontmatter.externalLinks || [],
             published: frontmatter.published || false,
             featured: frontmatter.featured || false,
             date: frontmatter.date || new Date().toISOString().split('T')[0],
@@ -2761,20 +2827,9 @@ class ProjectSystem {
                 </div>
             `;
 
-            // Create links HTML
-            let linksHTML = '<div class="project-links">';
-            if (project.githubUrl) {
-                linksHTML += `<a href="${project.githubUrl}" class="project-link" target="_blank" rel="noopener noreferrer">GitHub</a>`;
-            }
-            if (project.liveUrl) {
-                linksHTML += `<a href="${project.liveUrl}" class="project-link" target="_blank" rel="noopener noreferrer">Live Demo</a>`;
-            }
-            if (project.demoUrl) {
-                linksHTML += `<a href="${project.demoUrl}" class="project-link" target="_blank" rel="noopener noreferrer">Demo</a>`;
-            }
-            // Always add "View Details" link
-            linksHTML += `<a href="project-detail.html?id=${project.id}" class="project-link">View Details</a>`;
-            linksHTML += '</div>';
+            const linkItems = getProjectLinks(project).map(link => renderProjectLink(link, 'project-link'));
+            linkItems.push(`<a href="project-detail/${encodeURIComponent(project.id)}/" class="project-link">View Details</a>`);
+            const linksHTML = `<div class="project-links">${linkItems.join('')}</div>`;
 
             // Create technologies tags
             const showTechTags = this.configManager?.isFeatureEnabled('project_tags');
@@ -2783,8 +2838,8 @@ class ProjectSystem {
                 ? `<div class="project-tech">${techArray.map(tech => `<span class="tech-tag">${tech}</span>`).join('')}</div>`
                 : '';
             const metaChip = project.featured
-                ? '<span class="page-chip">Featured</span>'
-                : '<span class="page-chip subtle">Case study</span>';
+                ? '<span class="page-chip">Featured project</span>'
+                : '<span class="page-chip subtle">Project</span>';
 
             card.innerHTML = `
                 ${visualHTML}
@@ -2794,7 +2849,7 @@ class ProjectSystem {
                         ${project.date ? `<span class="project-card-date">${this.formatDate(project.date)}</span>` : ''}
                     </div>
                     <h3 class="project-title">
-                        <a href="project-detail.html?id=${project.id}" class="project-title-link">${project.title}</a>
+                        <a href="project-detail/${encodeURIComponent(project.id)}/" class="project-title-link">${project.title}</a>
                     </h3>
                     <p class="project-description">${project.description || ''}</p>
                     ${techHTML}
@@ -2814,8 +2869,7 @@ class ProjectSystem {
     }
 
     async loadProjectDetail() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const projectId = urlParams.get('id');
+        const projectId = getUrlDetailId('project-detail');
 
         if (!projectId) {
             window.location.href = 'projects.html';
@@ -2876,7 +2930,7 @@ class ProjectSystem {
                 datePublished: project.date,
                 creator: buildRuntimePersonSchema(this.configManager),
                 keywords: Array.isArray(project.technologies) ? project.technologies.join(', ') : undefined,
-                sameAs: [project.githubUrl, project.liveUrl].filter(Boolean)
+                sameAs: getProjectLinks(project).map(link => link.url)
             }
         });
     }
@@ -2885,27 +2939,7 @@ class ProjectSystem {
         const container = document.getElementById('project-detail-container');
         if (!container) return;
 
-        // Create links HTML
-        const linkItems = [];
-        if (project.githubUrl) {
-            linkItems.push(`<a href="${project.githubUrl}" class="project-detail-link" target="_blank" rel="noopener noreferrer">
-                <svg class="link-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                GitHub
-            </a>`);
-        }
-        if (project.liveUrl) {
-            linkItems.push(`<a href="${project.liveUrl}" class="project-detail-link" target="_blank" rel="noopener noreferrer">
-                <svg class="link-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1 17h-2v-2h2v2zm2-6v2h-2v-2c0-.55-.45-1-1-1s-1 .45-1 1h-2c0-1.66 1.34-3 3-3s3 1.34 3 3c0 1.11-.6 2.08-1.5 2.6-.72.39-1.5 1.16-1.5 2.4v.5h2v-.5c0-.55.45-1 1-1 .83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5z"/>
-                </svg>
-                Live Demo
-            </a>`);
-        }
-        if (project.demoUrl) {
-            linkItems.push(`<a href="${project.demoUrl}" class="project-detail-link" target="_blank" rel="noopener noreferrer">Demo</a>`);
-        }
+        const linkItems = getProjectLinks(project).map(link => renderProjectLink(link, 'project-detail-link'));
         const linksHTML = linkItems.length > 0 ? `<div class="project-detail-links">${linkItems.join('')}</div>` : '';
 
         const showTechTags = this.configManager?.isFeatureEnabled('project_tags');
@@ -2923,7 +2957,7 @@ class ProjectSystem {
                 </div>
                 <header class="project-detail-header">
                     <div class="project-detail-meta">
-                        <span class="page-chip">Case study</span>
+                        <span class="page-chip">Project</span>
                         ${project.date ? `<span class="project-card-date">${this.formatDate(project.date)}</span>` : ''}
                     </div>
                     <div class="project-detail-hero">

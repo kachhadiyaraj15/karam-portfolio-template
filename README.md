@@ -375,6 +375,7 @@ technologies: [React, Node, Design Systems]
 githubUrl: https://github.com/user/project
 liveUrl: https://project.example.com
 demoUrl: https://demo.example.com
+links: [Docs|https://docs.example.com, Live Preview|https://demo.example.com]
 published: true
 featured: false
 date: 2026-01-01
@@ -386,6 +387,7 @@ Notes:
 - `published: false` hides the project.
 - `featured: true` can be used for highlighted projects.
 - `image` can use a direct path or an image variable from `config/images.md`.
+- `links` adds extra project buttons. Use `Label|URL`, separated by commas inside `[ ]`. External links open in a new tab; internal links can use paths like `/blog-post/post-id/` or `project-detail/project-id/`.
 - The markdown body becomes the project detail page.
 
 ## Blog Posts

@@ -6,6 +6,7 @@ technologies: [JavaScript, Node.js, HTML, CSS, Markdown]
 githubUrl:
 liveUrl:
 demoUrl:
+links: [Live Site|/, UI Stress Test|/blog-post/markdown-ui-stress-test/]
 published: true
 featured: true
 date: 2026-03-01

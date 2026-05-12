@@ -103,7 +103,15 @@ function createRouteAliases() {
         .filter(post => post?.id)
         .forEach(post => copyRouteAlias(`blog-post/${post.id}`, 'blog-post.html'));
 
+    const projectData = readOutputJson('api-static/project-files.json');
+    const projects = Array.isArray(projectData?.files) ? projectData.files : [];
+
+    projects
+        .filter(project => project?.id)
+        .forEach(project => copyRouteAlias(`project-detail/${project.id}`, 'project-detail.html'));
+
     console.log(`Created ${blogPosts.length} static blog post route aliases`);
+    console.log(`Created ${projects.length} static project route aliases`);
 }
 
 fs.rmSync(outputDir, { recursive: true, force: true });

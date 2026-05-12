@@ -58,6 +58,18 @@ _LEGACY_API_REDIRECTS = {
     "/api/config/site": "/api-static/config/site.json",
 }
 
+_ROUTE_SHELLS = {
+    "about": "about.html",
+    "blog": "blog.html",
+    "blog-post": "blog-post.html",
+    "experience": "experience.html",
+    "experience-detail": "experience-detail.html",
+    "playlist-detail": "playlist-detail.html",
+    "playlists": "playlists.html",
+    "project-detail": "project-detail.html",
+    "projects": "projects.html",
+}
+
 
 class BlogServerHandler(http.server.SimpleHTTPRequestHandler):
     """Static file server with cache headers, gzip support, and legacy redirects."""
@@ -79,7 +91,8 @@ class BlogServerHandler(http.server.SimpleHTTPRequestHandler):
         self._serve_static()
 
     def _serve_static(self):
-        fs_path = self.translate_path(self.path)
+        request_path = urlparse(self.path).path
+        fs_path = self.translate_path(request_path)
 
         if os.path.isdir(fs_path):
             index_path = os.path.join(fs_path, "index.html")
@@ -87,8 +100,12 @@ class BlogServerHandler(http.server.SimpleHTTPRequestHandler):
                 fs_path = index_path
 
         if not os.path.isfile(fs_path):
-            self.send_error(404, "File not found")
-            return
+            route_shell = self._resolve_route_shell(request_path)
+            if route_shell:
+                fs_path = self.translate_path(route_shell)
+            if not os.path.isfile(fs_path):
+                self.send_error(404, "File not found")
+                return
 
         stat = os.stat(fs_path)
         mtime = int(stat.st_mtime)
@@ -140,6 +157,15 @@ class BlogServerHandler(http.server.SimpleHTTPRequestHandler):
 
         self.end_headers()
         self.wfile.write(body)
+
+    @staticmethod
+    def _resolve_route_shell(request_path):
+        segments = [segment for segment in request_path.strip("/").split("/") if segment]
+        if not segments:
+            return None
+
+        route_name = segments[0].removesuffix(".html")
+        return _ROUTE_SHELLS.get(route_name)
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):

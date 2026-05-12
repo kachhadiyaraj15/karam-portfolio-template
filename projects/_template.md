@@ -6,6 +6,7 @@ technologies: [Tech1, Tech2, Tech3]
 githubUrl:
 liveUrl:
 demoUrl:
+links: [Docs|https://example.com/docs, Live Preview|https://example.com/demo]
 published: true
 featured: false
 date: 2026-01-01

@@ -1137,7 +1137,7 @@ function parseFrontmatter(content) {
 
         // Parse arrays [item1, item2]
         if (value.startsWith('[') && value.endsWith(']')) {
-            value = value.slice(1, -1).split(',').map(item => item.trim());
+            value = value.slice(1, -1).split(',').map(item => item.trim()).filter(Boolean);
         }
         // Parse booleans
         else if (value.toLowerCase() === 'true') value = true;
@@ -1528,7 +1528,7 @@ function collectNotesIndex() {
                 title: metadata.title || id,
                 kind: 'project',
                 sourcePath: `projects/${item}`,
-                url: `project-detail.html?id=${id}`,
+                url: `project-detail/${id}/`,
                 content: stripFrontmatter(content),
                 aliases: [item.replace('.md', '')],
                 tags: Array.isArray(metadata.technologies) ? metadata.technologies : [],
@@ -1671,7 +1671,7 @@ function generateSeoFiles(siteConfig, { blogPosts = [], playlists = [], projects
     });
 
     projects.forEach(project => {
-        entries.push(createSitemapEntry(siteConfig, `project-detail.html?id=${encodeURIComponent(project.id)}`, {
+        entries.push(createSitemapEntry(siteConfig, `project-detail/${encodeURIComponent(project.id)}/`, {
             priority: project.featured ? '0.75' : '0.65',
             changefreq: 'monthly',
             lastmod: project.updated || project.date
