@@ -1,0 +1,9 @@
+# Cloudflare Pages redirect rules
+# These allow extensionless URLs for navigation (e.g. /blog → blog.html)
+# Detail pages use ?id= query params so they do NOT need path-based rules
+
+/blog           /blog.html          200
+/projects       /projects.html      200
+/playlists      /playlists.html     200
+/experience     /experience.html    200
+/about          /about.html         200

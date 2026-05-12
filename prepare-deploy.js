@@ -16,8 +16,11 @@ const files = [
     'playlists.html',
     'playlist-detail.html',
     '_headers',
+    '_redirects',
     'styles.css',
-    'blog.js'
+    'blog.js',
+    'robots.txt',
+    'sitemap.xml'
 ];
 
 const directories = [
@@ -110,8 +113,24 @@ function createRouteAliases() {
         .filter(project => project?.id)
         .forEach(project => copyRouteAlias(`project-detail/${project.id}`, 'project-detail.html'));
 
+    const playlistData = readOutputJson('api-static/playlist-files.json');
+    const playlists = Array.isArray(playlistData?.files) ? playlistData.files : [];
+
+    playlists
+        .filter(playlist => playlist?.id)
+        .forEach(playlist => copyRouteAlias(`playlist-detail/${playlist.id}`, 'playlist-detail.html'));
+
+    const experienceData = readOutputJson('api-static/experience-files.json');
+    const experience = Array.isArray(experienceData?.files) ? experienceData.files : [];
+
+    experience
+        .filter(entry => entry?.id)
+        .forEach(entry => copyRouteAlias(`experience-detail/${entry.id}`, 'experience-detail.html'));
+
     console.log(`Created ${blogPosts.length} static blog post route aliases`);
     console.log(`Created ${projects.length} static project route aliases`);
+    console.log(`Created ${playlists.length} static playlist route aliases`);
+    console.log(`Created ${experience.length} static experience route aliases`);
 }
 
 fs.rmSync(outputDir, { recursive: true, force: true });

@@ -1878,7 +1878,7 @@ class BlogSystem {
             const showTags = this.configManager?.getSiteConfig('blog_show_tags') !== false;
             const card = document.createElement('article');
             card.className = 'blog-card';
-            const postHref = `blog-post/${encodeURIComponent(post.id)}/`;
+            const postHref = `blog-post.html?id=${encodeURIComponent(post.id)}`;
             card.onclick = () => window.location.href = postHref;
             card.setAttribute('role', 'link');
             card.setAttribute('tabindex', '0');
@@ -1979,7 +1979,7 @@ class BlogSystem {
 
     updatePageMeta(post) {
         const siteName = this.configManager?.getSiteName() || 'Portfolio';
-        const pagePath = `blog-post/${encodeURIComponent(post.id)}/`;
+        const pagePath = `blog-post.html?id=${encodeURIComponent(post.id)}`;
         const canonicalUrl = buildRuntimeUrl(this.configManager, pagePath);
         const author = buildRuntimePersonSchema(this.configManager);
 
@@ -2828,7 +2828,7 @@ class ProjectSystem {
             `;
 
             const linkItems = getProjectLinks(project).map(link => renderProjectLink(link, 'project-link'));
-            linkItems.push(`<a href="project-detail/${encodeURIComponent(project.id)}/" class="project-link">View Details</a>`);
+            linkItems.push(`<a href="project-detail.html?id=${encodeURIComponent(project.id)}" class="project-link">View Details</a>`);
             const linksHTML = `<div class="project-links">${linkItems.join('')}</div>`;
 
             // Create technologies tags
@@ -2849,7 +2849,7 @@ class ProjectSystem {
                         ${project.date ? `<span class="project-card-date">${this.formatDate(project.date)}</span>` : ''}
                     </div>
                     <h3 class="project-title">
-                        <a href="project-detail/${encodeURIComponent(project.id)}/" class="project-title-link">${project.title}</a>
+                        <a href="project-detail.html?id=${encodeURIComponent(project.id)}" class="project-title-link">${project.title}</a>
                     </h3>
                     <p class="project-description">${project.description || ''}</p>
                     ${techHTML}
@@ -3398,6 +3398,7 @@ class HomeSystem {
         const actions = [
             this.configManager?.isPageEnabled('projects') ? { href: 'projects.html', label: 'View projects', primary: true } : null,
             this.configManager?.isPageEnabled('blog') ? { href: 'blog.html', label: 'Read blog', primary: false } : null,
+            this.configManager?.isPageEnabled('playlists') ? { href: 'playlists.html', label: 'Open playlists', primary: false } : null,
             this.configManager?.isPageEnabled('about') ? { href: 'about.html', label: 'About me', primary: false } : null
         ].filter(Boolean);
 
