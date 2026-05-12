@@ -1564,15 +1564,25 @@ select {
 .prose pre {
     position: relative;
     margin: 1.4rem 0;
-    padding: 1.15rem 1.1rem;
+    padding: 0;
     border-radius: 20px;
-    overflow-x: auto;
     background: linear-gradient(180deg, var(--surface-strong), var(--code-bg));
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
+    overflow: hidden;
 }
 
-.prose pre[data-code-copy-ready] {
+.prose pre code {
+    display: block;
+    overflow-x: auto;
+    padding: 1.15rem 1.1rem;
+    background: transparent;
+    color: var(--text-primary);
+    line-height: 1.65;
+    tab-size: 4;
+}
+
+.prose pre[data-code-copy-ready] code {
     padding-top: 3rem;
 }
 
@@ -1595,6 +1605,7 @@ select {
     text-overflow: ellipsis;
     text-transform: uppercase;
     white-space: nowrap;
+    z-index: 1;
 }
 
 .prose .code-copy-button {
@@ -1646,16 +1657,6 @@ select {
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 2;
-}
-
-.prose pre code {
-    display: block;
-    min-width: max-content;
-    padding: 0;
-    background: transparent;
-    color: var(--text-primary);
-    line-height: 1.65;
-    tab-size: 4;
 }
 
 .prose pre .hljs {
@@ -4330,11 +4331,15 @@ select {
 
     .prose pre {
         margin: 1rem 0;
-        padding: 0.9rem;
+        padding: 0;
         border-radius: 16px;
     }
 
-    .prose pre[data-code-copy-ready] {
+    .prose pre code {
+        padding: 0.9rem;
+    }
+
+    .prose pre[data-code-copy-ready] code {
         padding-top: 3rem;
     }
 
