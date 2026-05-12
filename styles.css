@@ -22,6 +22,9 @@
     --link-hover: #0a4f4d;
     --code-bg: #eee4d4;
     --overlay-scrim: rgba(10, 12, 14, 0.32);
+    --focus-ring: rgba(15, 107, 104, 0.24);
+    --focus-ring-strong: rgba(15, 107, 104, 0.42);
+    --interactive-pressed: rgba(15, 107, 104, 0.1);
     --shadow-sm: 0 16px 40px rgba(38, 28, 17, 0.08);
     --shadow-md: 0 24px 60px rgba(38, 28, 17, 0.12);
     --shadow-lg: 0 40px 90px rgba(38, 28, 17, 0.16);
@@ -64,6 +67,9 @@
     --link-hover: #d6fffa;
     --code-bg: #0f171c;
     --overlay-scrim: rgba(3, 6, 8, 0.58);
+    --focus-ring: rgba(102, 208, 199, 0.26);
+    --focus-ring-strong: rgba(102, 208, 199, 0.42);
+    --interactive-pressed: rgba(102, 208, 199, 0.13);
     --shadow-sm: 0 18px 40px rgba(0, 0, 0, 0.28);
     --shadow-md: 0 30px 76px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 48px 120px rgba(0, 0, 0, 0.54);
@@ -75,11 +81,12 @@
     box-sizing: border-box;
 }
 
-/* Focus-visible: accessibility outline for keyboard navigation */
+/* Focus-visible: theme-aware keyboard ring without browser default blocks */
 *:focus-visible {
-    outline: 2px solid var(--accent-primary);
+    outline: 1px solid transparent;
     outline-offset: 3px;
-    border-radius: 4px;
+    border-radius: var(--focus-radius, 12px);
+    box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 /* ========================================
@@ -160,6 +167,7 @@
 
 html {
     scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
     /* Force vertical scrollbar track to ALWAYS show.
        This is the only 100% bulletproof way to prevent layout shift 
        (jiggling) because it ensures 1vw and centered auto-margins 
@@ -228,6 +236,14 @@ input,
 textarea,
 select {
     font: inherit;
+}
+
+:where(a, button, [role="button"], summary, input, textarea, select) {
+    -webkit-tap-highlight-color: transparent;
+}
+
+:where(a, button, [role="button"], summary):focus:not(:focus-visible) {
+    outline: none;
 }
 
 .container {
@@ -1556,15 +1572,17 @@ select {
     box-shadow: var(--shadow-sm);
 }
 
-.prose pre[data-language] {
-    padding-top: 2.7rem;
+.prose pre[data-code-copy-ready] {
+    padding-top: 3rem;
 }
 
 .prose pre[data-language]::before {
     content: attr(data-language);
     position: absolute;
     top: 0.8rem;
-    right: 0.95rem;
+    left: 0.95rem;
+    max-width: calc(100% - 5.6rem);
+    overflow: hidden;
     padding: 0.24rem 0.58rem;
     border: 1px solid var(--border-color);
     border-radius: 999px;
@@ -1574,7 +1592,60 @@ select {
     font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.08em;
+    text-overflow: ellipsis;
     text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.prose .code-copy-button {
+    position: absolute;
+    top: 0.72rem;
+    right: 0.85rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.05rem;
+    height: 2.05rem;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
+}
+
+.prose .code-copy-button:hover,
+.prose .code-copy-button:focus-visible {
+    border-color: var(--accent-primary);
+    color: var(--accent-strong);
+    transform: translateY(-1px);
+}
+
+.prose .code-copy-button:focus-visible {
+    outline-offset: 2px;
+}
+
+.prose .code-copy-button.is-copied {
+    border-color: var(--accent-primary);
+    background: color-mix(in srgb, var(--accent-primary) 14%, var(--surface-elevated));
+    color: var(--accent-strong);
+}
+
+.prose .code-copy-button svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
 }
 
 .prose pre code {
@@ -3561,6 +3632,53 @@ select {
     height: 20px;
 }
 
+:where(button, [role="button"], .nav-link, .theme-toggle, .source-code-link, .filter-toggle-btn, .project-link, .project-detail-link, .home-action, .tag-filter-btn, .clear-btn, .card-inline-action, .blog-card-arrow, .filter-close-btn, .scroll-top-btn, .mobile-menu-btn, .home-social-btn, .about-social-link, .blog-nav-link, .code-copy-button) {
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.nav-link:focus-visible,
+.theme-toggle:focus-visible,
+.source-code-link:focus-visible,
+.filter-toggle-btn:focus-visible,
+.project-link:focus-visible,
+.project-detail-link:focus-visible,
+.home-action:focus-visible,
+.tag-filter-btn:focus-visible,
+.clear-btn:focus-visible,
+.card-inline-action:focus-visible,
+.blog-card-arrow:focus-visible,
+.filter-close-btn:focus-visible,
+.scroll-top-btn:focus-visible,
+.mobile-menu-btn:focus-visible,
+.home-social-btn:focus-visible,
+.about-social-link:focus-visible,
+.blog-nav-link:focus-visible,
+.prose .code-copy-button:focus-visible {
+    box-shadow: 0 0 0 4px var(--focus-ring), 0 0 0 1px var(--focus-ring-strong), var(--shadow-sm);
+}
+
+.theme-toggle:active,
+.source-code-link:active,
+.filter-toggle-btn:active,
+.project-link:active,
+.project-detail-link:active,
+.home-action:active,
+.tag-filter-btn:active,
+.clear-btn:active,
+.card-inline-action:active,
+.blog-card-arrow:active,
+.filter-close-btn:active,
+.scroll-top-btn:active,
+.mobile-menu-btn:active,
+.home-social-btn:active,
+.about-social-link:active,
+.blog-nav-link:active,
+.prose .code-copy-button:active {
+    background-color: color-mix(in srgb, var(--accent-primary) 9%, var(--surface-strong));
+    transform: translateY(0) scale(0.985);
+}
+
 .hidden {
     display: none;
 }
@@ -4214,6 +4332,15 @@ select {
         margin: 1rem 0;
         padding: 0.9rem;
         border-radius: 16px;
+    }
+
+    .prose pre[data-code-copy-ready] {
+        padding-top: 3rem;
+    }
+
+    .prose .code-copy-button {
+        top: 0.62rem;
+        right: 0.62rem;
     }
 
     .prose img {

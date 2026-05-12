@@ -1045,6 +1045,57 @@ function enhancePluginBlocks(root) {
     }
 }
 
+const CODE_COPY_ICON = `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+`;
+
+const CODE_COPIED_ICON = `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M20 6 9 17l-5-5"></path>
+    </svg>
+`;
+
+function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    }
+
+    return new Promise((resolve, reject) => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.top = '-1000px';
+        textarea.style.left = '-1000px';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+            if (document.execCommand('copy')) {
+                resolve();
+            } else {
+                reject(new Error('Copy command failed'));
+            }
+        } catch (error) {
+            reject(error);
+        } finally {
+            textarea.remove();
+        }
+    });
+}
+
+function setCodeCopyButtonState(button, state) {
+    const isCopied = state === 'copied';
+    button.classList.toggle('is-copied', isCopied);
+    button.innerHTML = isCopied ? CODE_COPIED_ICON : CODE_COPY_ICON;
+    button.setAttribute('aria-label', isCopied ? 'Code copied' : 'Copy code');
+    button.title = isCopied ? 'Copied' : 'Copy code';
+}
+
 function decorateMarkdownCodeBlocks(root) {
     root.querySelectorAll('.prose pre').forEach((pre) => {
         if (pre.closest('.plugin-block')) {
@@ -1063,6 +1114,40 @@ function decorateMarkdownCodeBlocks(root) {
         } else {
             delete pre.dataset.language;
         }
+
+        pre.dataset.codeCopyReady = 'true';
+
+        let copyButton = Array.from(pre.children).find(child => child.classList?.contains('code-copy-button'));
+        if (!copyButton) {
+            copyButton = document.createElement('button');
+            copyButton.type = 'button';
+            copyButton.className = 'code-copy-button';
+            pre.appendChild(copyButton);
+        }
+
+        setCodeCopyButtonState(copyButton, 'ready');
+        copyButton.onclick = async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const text = code.textContent || '';
+            if (!text.trim()) {
+                return;
+            }
+
+            try {
+                await copyTextToClipboard(text.replace(/\n$/, ''));
+                setCodeCopyButtonState(copyButton, 'copied');
+                window.clearTimeout(copyButton.copyResetTimer);
+                copyButton.copyResetTimer = window.setTimeout(() => {
+                    setCodeCopyButtonState(copyButton, 'ready');
+                }, 1600);
+            } catch (error) {
+                console.error('Unable to copy code block:', error);
+                copyButton.setAttribute('aria-label', 'Copy failed');
+                copyButton.title = 'Copy failed';
+            }
+        };
     });
 }
 
