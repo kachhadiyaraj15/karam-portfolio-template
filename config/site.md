@@ -51,7 +51,7 @@ blog_show_categories: true
 blog_show_tags: true
 blog_enable_filters: true
 
-footer_text: Copyright {{year}} Karam. Designed with intention and built for the web.
+footer_text: Copyright {{year}} {{site_name}}. Designed with intention and built for the web.
 ---
 
 # Editing Notes

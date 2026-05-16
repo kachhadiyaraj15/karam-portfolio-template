@@ -4087,7 +4087,9 @@ class ConfigManager {
 
     getFooterText() {
         const raw = this.getSiteConfig('footer_text') || `© ${new Date().getFullYear()} ${this.getSiteName()}.`;
-        return raw.replace(/\{\{\s*year\s*\}\}/gi, String(new Date().getFullYear()));
+        return raw
+            .replace(/\{\{\s*year\s*\}\}/gi, String(new Date().getFullYear()))
+            .replace(/\{\{\s*(site_name|name)\s*\}\}/gi, this.getSiteName());
     }
 
     // Check if a page is enabled

@@ -823,7 +823,9 @@ function generateFavicon(siteConfig) {
 
 function resolveFooterText(value, siteName) {
     const defaultText = `© ${new Date().getFullYear()} ${siteName}.`;
-    return (value || defaultText).replace(/\{\{\s*year\s*\}\}/gi, String(new Date().getFullYear()));
+    return (value || defaultText)
+        .replace(/\{\{\s*year\s*\}\}/gi, String(new Date().getFullYear()))
+        .replace(/\{\{\s*(site_name|name)\s*\}\}/gi, siteName);
 }
 
 function parseNavigationConfig(navString) {
